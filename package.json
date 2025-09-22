@@ -116,5 +116,7 @@
     ]
   },
   "registry": "https://registry.npmjs.org/",
-  "dependencies": {}
+  "dependencies": {
+    "typesense": "^1.8.2"
+  }
 }

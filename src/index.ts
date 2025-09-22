@@ -1,112 +1,95 @@
 import type { CollectionSlug, Config } from 'payload'
+import Typesense from 'typesense'
 
 import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
+import { createSearchEndpoints } from './endpoints/search.js'
+import { createTypesenseClient } from './lib/typesense-client.js'
+import { setupHooks } from './lib/hooks.js'
+import { initializeTypesenseCollections } from './lib/initialization.js'
 
 export type TypesenseSearchConfig = {
   /**
-   * List of collections to add a custom field
+   * Typesense server configuration
    */
-  collections?: Partial<Record<CollectionSlug, true>>
+  typesense: {
+    nodes: Array<{
+      host: string
+      port: string | number
+      protocol: 'http' | 'https'
+    }>
+    apiKey: string
+    connectionTimeoutSeconds?: number
+  }
+
+  /**
+   * Collections to index in Typesense
+   */
+  collections?: Partial<
+    Record<
+      CollectionSlug,
+      {
+        enabled: boolean
+        searchFields?: string[]
+        facetFields?: string[]
+        sortFields?: string[]
+      }
+    >
+  >
+
+  /**
+   * Global plugin settings
+   */
+  settings?: {
+    autoSync?: boolean
+    batchSize?: number
+    searchEndpoint?: string
+  }
+
   disabled?: boolean
 }
 
 export const typesenseSearch =
   (pluginOptions: TypesenseSearchConfig) =>
   (config: Config): Config => {
-    if (!config.collections) {
-      config.collections = []
-    }
-
-    config.collections.push({
-      slug: 'plugin-collection',
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-      ],
-    })
-
-    if (pluginOptions.collections) {
-      for (const collectionSlug in pluginOptions.collections) {
-        const collection = config.collections.find(
-          (collection) => collection.slug === collectionSlug,
-        )
-
-        if (collection) {
-          collection.fields.push({
-            name: 'addedByPlugin',
-            type: 'text',
-            admin: {
-              position: 'sidebar',
-            },
-          })
-        }
-      }
-    }
-
-    /**
-     * If the plugin is disabled, we still want to keep added collections/fields so the database schema is consistent which is important for migrations.
-     * If your plugin heavily modifies the database schema, you may want to remove this property.
-     */
     if (pluginOptions.disabled) {
       return config
     }
 
-    if (!config.endpoints) {
-      config.endpoints = []
+    // Initialize Typesense client
+    const typesenseClient = createTypesenseClient(pluginOptions.typesense)
+
+    // Add search endpoints
+    config.endpoints = [
+      ...(config.endpoints || []),
+      ...createSearchEndpoints(typesenseClient, pluginOptions),
+    ]
+
+    // Add admin components
+    config.admin = {
+      ...config.admin,
+      components: {
+        ...config.admin?.components,
+        beforeDashboard: [
+          ...(config.admin?.components?.beforeDashboard || []),
+          `typesense-search/client#BeforeDashboardClient`,
+          `typesense-search/rsc#BeforeDashboardServer`,
+        ],
+      },
     }
 
-    if (!config.admin) {
-      config.admin = {}
+    // Setup collection hooks for auto-sync
+    if (pluginOptions.settings?.autoSync !== false) {
+      config.hooks = setupHooks(typesenseClient, pluginOptions, config.hooks)
     }
 
-    if (!config.admin.components) {
-      config.admin.components = {}
-    }
-
-    if (!config.admin.components.beforeDashboard) {
-      config.admin.components.beforeDashboard = []
-    }
-
-    config.admin.components.beforeDashboard.push(
-      `typesense-search/client#BeforeDashboardClient`,
-    )
-    config.admin.components.beforeDashboard.push(
-      `typesense-search/rsc#BeforeDashboardServer`,
-    )
-
-    config.endpoints.push({
-      handler: customEndpointHandler,
-      method: 'get',
-      path: '/my-plugin-endpoint',
-    })
-
+    // Initialize collections in Typesense
     const incomingOnInit = config.onInit
-
     config.onInit = async (payload) => {
-      // Ensure we are executing any existing onInit functions before running our own.
       if (incomingOnInit) {
         await incomingOnInit(payload)
       }
 
-      const { totalDocs } = await payload.count({
-        collection: 'plugin-collection',
-        where: {
-          id: {
-            equals: 'seeded-by-plugin',
-          },
-        },
-      })
-
-      if (totalDocs === 0) {
-        await payload.create({
-          collection: 'plugin-collection',
-          data: {
-            id: 'seeded-by-plugin',
-          },
-        })
-      }
+      await initializeTypesenseCollections(payload, typesenseClient, pluginOptions)
     }
 
     return config

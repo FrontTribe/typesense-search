@@ -3,8 +3,8 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
 import { buildConfig } from 'payload'
-import { typesenseSearch } from 'typesense-search'
 import sharp from 'sharp'
+import { typesenseSearch } from 'typesense-search'
 import { fileURLToPath } from 'url'
 
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
@@ -38,11 +38,47 @@ const buildConfigWithMemoryDB = async () => {
     collections: [
       {
         slug: 'posts',
-        fields: [],
+        fields: [
+          {
+            name: 'title',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'content',
+            type: 'richText',
+          },
+          {
+            name: 'category',
+            type: 'text',
+          },
+          {
+            name: 'status',
+            type: 'select',
+            defaultValue: 'draft',
+            options: [
+              { label: 'Draft', value: 'draft' },
+              { label: 'Published', value: 'published' },
+            ],
+          },
+        ],
       },
       {
         slug: 'media',
-        fields: [],
+        fields: [
+          {
+            name: 'filename',
+            type: 'text',
+          },
+          {
+            name: 'alt',
+            type: 'text',
+          },
+          {
+            name: 'type',
+            type: 'text',
+          },
+        ],
         upload: {
           staticDir: path.resolve(dirname, 'media'),
         },
@@ -60,7 +96,31 @@ const buildConfigWithMemoryDB = async () => {
     plugins: [
       typesenseSearch({
         collections: {
-          posts: true,
+          media: {
+            enabled: true,
+            facetFields: ['type'],
+            searchFields: ['filename', 'alt'],
+          },
+          posts: {
+            enabled: true,
+            facetFields: ['category', 'status'],
+            searchFields: ['title', 'content'],
+          },
+        },
+        settings: {
+          autoSync: true,
+          searchEndpoint: '/api/search',
+        },
+        typesense: {
+          apiKey: 'xyz',
+          connectionTimeoutSeconds: 2,
+          nodes: [
+            {
+              host: 'localhost',
+              port: 8108,
+              protocol: 'http',
+            },
+          ],
         },
       }),
     ],
