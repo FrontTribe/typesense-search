@@ -19,6 +19,25 @@ export const BeforeDashboardClient = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [selectedCollection, setSelectedCollection] = useState('posts')
 
+  // Safety check for config
+  if (!config || !config.serverURL || !config.routes?.api) {
+    return (
+      <div
+        style={{
+          padding: '20px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          margin: '20px 0',
+          backgroundColor: '#fef2f2',
+          color: '#dc2626',
+        }}
+      >
+        <h2>⚠️ Configuration Error</h2>
+        <p>Search functionality is not available. Please check your Payload configuration.</p>
+      </div>
+    )
+  }
+
   const performSearch = async (query: string) => {
     if (!query.trim()) {
       setSearchResults(null)
@@ -30,10 +49,27 @@ export const BeforeDashboardClient = () => {
       const response = await fetch(
         `${config.serverURL}${config.routes.api}/search/${selectedCollection}?q=${encodeURIComponent(query)}&per_page=5`,
       )
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status} ${response.statusText}`)
+      }
+
       const results = await response.json()
-      setSearchResults(results)
+
+      // Ensure results have the expected structure
+      if (results && typeof results === 'object') {
+        setSearchResults({
+          hits: results.hits || [],
+          found: results.found || 0,
+          page: results.page || 1,
+          search_time_ms: results.search_time_ms || 0,
+        })
+      } else {
+        setSearchResults(null)
+      }
     } catch (error) {
       console.error('Search failed:', error)
+      setSearchResults(null)
     } finally {
       setIsSearching(false)
     }
@@ -99,9 +135,10 @@ export const BeforeDashboardClient = () => {
       {searchResults && (
         <div>
           <h3>
-            Search Results ({searchResults.found} found in {searchResults.search_time_ms}ms)
+            Search Results ({searchResults.found || 0} found in {searchResults.search_time_ms || 0}
+            ms)
           </h3>
-          {searchResults.hits.length > 0 ? (
+          {searchResults.hits && searchResults.hits.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {searchResults.hits.map((hit, index) => (
                 <div
@@ -114,7 +151,9 @@ export const BeforeDashboardClient = () => {
                   }}
                 >
                   <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                    {hit.document.title || hit.document.filename || `Document ${hit.document.id}`}
+                    {hit.document?.title ||
+                      hit.document?.filename ||
+                      `Document ${hit.document?.id || index}`}
                   </div>
                   {hit.highlight && (
                     <div
@@ -125,8 +164,10 @@ export const BeforeDashboardClient = () => {
                     />
                   )}
                   <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
-                    ID: {hit.document.id} | Updated:{' '}
-                    {new Date(hit.document.updatedAt).toLocaleDateString()}
+                    ID: {hit.document?.id || 'Unknown'} | Updated:{' '}
+                    {hit.document?.updatedAt
+                      ? new Date(hit.document.updatedAt).toLocaleDateString()
+                      : 'Unknown'}
                   </div>
                 </div>
               ))}

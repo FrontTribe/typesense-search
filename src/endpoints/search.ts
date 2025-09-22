@@ -30,8 +30,15 @@ const createSearchHandler = (
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
   return async ({ params, req }) => {
-    const { collection } = params
-    const { q, page = 1, per_page = 10, sort_by, ...filters } = req.query
+    const { collection } = params || {}
+    const { q, page = 1, per_page = 10, sort_by, ...filters } = req?.query || {}
+
+    // Debug logging
+    console.log('Search handler called with:', { collection, params, query: req?.query })
+
+    if (!collection) {
+      return Response.json({ error: 'Collection parameter is required' }, { status: 400 })
+    }
 
     if (!pluginOptions.collections?.[collection]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
@@ -84,8 +91,8 @@ const createAdvancedSearchHandler = (
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
   return async ({ params, req }) => {
-    const { collection } = params
-    const body = await req.json()
+    const { collection } = params || {}
+    const body = (await req?.json?.()) || {}
 
     if (!pluginOptions.collections?.[collection]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
@@ -107,8 +114,8 @@ const createSuggestHandler = (
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
   return async ({ params, req }) => {
-    const { collection } = params
-    const { q, limit = 5 } = req.query
+    const { collection } = params || {}
+    const { q, limit = 5 } = req?.query || {}
 
     if (!pluginOptions.collections?.[collection]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })

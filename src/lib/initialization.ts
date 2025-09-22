@@ -1,7 +1,7 @@
 import Typesense from 'typesense'
 import type { Payload } from 'payload'
 import type { TypesenseSearchConfig } from '../index.js'
-import { mapCollectionToTypesenseSchema } from './schema-mapper.js'
+import { mapCollectionToTypesenseSchema, mapPayloadDocumentToTypesense } from './schema-mapper.js'
 import { testTypesenseConnection } from './typesense-client.js'
 
 export const initializeTypesenseCollections = async (
@@ -97,14 +97,34 @@ const syncExistingDocuments = async (
       )
 
       try {
-        await typesenseClient
+        const importResult = await typesenseClient
           .collections(collectionSlug)
           .documents()
           .import(typesenseDocs, { action: 'upsert' })
 
         console.log(`✅ Synced ${batch.length} documents to ${collectionSlug}`)
-      } catch (batchError) {
-        console.error(`❌ Failed to sync batch for ${collectionSlug}:`, batchError)
+      } catch (batchError: any) {
+        console.error(`❌ Failed to sync batch for ${collectionSlug}:`, batchError.message)
+
+        // Log detailed import results if available
+        if (batchError.importResults) {
+          console.error('Import results:', batchError.importResults)
+
+          // Try to sync documents individually to identify problematic ones
+          console.log('🔄 Attempting individual document sync...')
+          for (let j = 0; j < typesenseDocs.length; j++) {
+            try {
+              await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDocs[j])
+              console.log(`✅ Individual sync successful for document ${j + 1}`)
+            } catch (individualError: any) {
+              console.error(
+                `❌ Individual sync failed for document ${j + 1}:`,
+                individualError.message,
+              )
+              console.error('Problematic document:', typesenseDocs[j])
+            }
+          }
+        }
       }
     }
 

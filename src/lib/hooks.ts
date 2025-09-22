@@ -54,8 +54,16 @@ const syncDocumentToTypesense = async (
     await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDoc)
 
     console.log(`✅ Document ${operation}d in Typesense:`, collectionSlug, doc.id)
-  } catch (error) {
-    console.error(`❌ Failed to sync document to Typesense:`, error)
+  } catch (error: any) {
+    console.error(`❌ Failed to sync document to Typesense:`, error.message)
+    console.error(`   Collection: ${collectionSlug}`)
+    console.error(`   Document ID: ${doc.id}`)
+    console.error(`   Operation: ${operation}`)
+
+    // Log the problematic document for debugging
+    if (error.message.includes('validation')) {
+      console.error(`   Problematic document:`, JSON.stringify(doc, null, 2))
+    }
   }
 }
 
