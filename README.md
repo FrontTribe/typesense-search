@@ -92,6 +92,7 @@ export default buildConfig({
       },
       settings: {
         categorized: true,
+        autoSync: true,
       },
     }),
   ],
@@ -386,10 +387,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Typesense](https://typesense.org/) for the amazing search engine
 - [Payload CMS](https://payloadcms.com/) for the flexible headless CMS
 - [React](https://reactjs.org/) for the component framework
-
-## 📞 Support
-
-- 📧 Email: support@example.com
-- 💬 Discord: [Join our community](https://discord.gg/example)
-- 📖 Documentation: [docs.example.com](https://docs.example.com)
-- 🐛 Issues: [GitHub Issues](https://github.com/example/typesense-search/issues)

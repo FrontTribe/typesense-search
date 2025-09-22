@@ -1,34 +1,34 @@
 {
-  "name": "@fronttribe/typesense-search",
+  "name": "typesense-search-plugin",
   "version": "1.0.0",
   "description": "A powerful, production-ready search plugin that integrates Typesense with Payload CMS, providing lightning-fast, typo-tolerant search capabilities with real-time synchronization.",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./src/index.ts",
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./client": {
-      "import": "./src/exports/client.ts",
-      "types": "./src/exports/client.ts",
-      "default": "./src/exports/client.ts"
+      "import": "./dist/exports/client.js",
+      "types": "./dist/exports/client.d.ts",
+      "default": "./dist/exports/client.js"
     },
     "./rsc": {
-      "import": "./src/exports/rsc.ts",
-      "types": "./src/exports/rsc.ts",
-      "default": "./src/exports/rsc.ts"
+      "import": "./dist/exports/rsc.js",
+      "types": "./dist/exports/rsc.d.ts",
+      "default": "./dist/exports/rsc.js"
     }
   },
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "pnpm copyfiles && pnpm build:types && pnpm build:swc",
-    "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths",
+    "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore '**/*.test.ts' --ignore '**/*.test.tsx' --ignore '**/__tests__/**/*' --ignore '**/setup.ts'",
     "build:types": "tsc --outDir dist --rootDir ./src",
     "clean": "rimraf {dist,*.tsbuildinfo}",
     "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
@@ -108,7 +108,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/fronttribe/typesense-search.git"
+    "url": "git+https://github.com/fronttribe/typesense-search.git"
   },
   "homepage": "https://github.com/fronttribe/typesense-search#readme",
   "bugs": {
@@ -116,10 +116,10 @@
   },
   "author": {
     "name": "Front Tribe",
-    "email": "hello@fronttribe.com",
+    "email": "hey@fronttribe.com",
     "url": "https://fronttribe.com"
   },
-  "publisher": "fronttribe",
+  "publisher": "front_tribe",
   "publishConfig": {
     "exports": {
       ".": {
