@@ -18,11 +18,11 @@ A powerful, production-ready search plugin that integrates Typesense with Payloa
 ## 📦 Installation
 
 ```bash
-npm install typesense-search
+npm install typesense-search-plugin
 # or
-yarn add typesense-search
+yarn add typesense-search-plugin
 # or
-pnpm add typesense-search
+pnpm add typesense-search-plugin
 ```
 
 ## 🏗️ Setup
@@ -50,7 +50,7 @@ docker-compose up -d
 ```typescript
 // payload.config.ts
 import { buildConfig } from 'payload/config'
-import { typesenseSearch } from 'typesense-search'
+import { typesenseSearch } from 'typesense-search-plugin'
 
 export default buildConfig({
   // ... your existing config
@@ -103,7 +103,7 @@ export default buildConfig({
 
 ```tsx
 // pages/search.tsx
-import { UnifiedSearchInput } from 'typesense-search'
+import { UnifiedSearchInput } from 'typesense-search-plugin'
 
 export default function SearchPage() {
   const handleResultClick = (result) => {
