@@ -1,49 +1,52 @@
 # Typesense Search Plugin for Payload CMS
 
-A powerful, production-ready search plugin that integrates [Typesense](https://typesense.org/) with Payload CMS, providing fast, typo-tolerant search capabilities with real-time synchronization and a beautiful admin interface.
+[![npm version](https://img.shields.io/npm/v/typesense-search.svg)](https://www.npmjs.com/package/typesense-search)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Payload CMS](https://img.shields.io/badge/Payload%20CMS-3.x-green.svg)](https://payloadcms.com/)
 
-## 🚀 Features
+A powerful, production-ready search plugin that integrates [Typesense](https://typesense.org/) with Payload CMS, providing lightning-fast, typo-tolerant search capabilities with real-time synchronization and a beautiful admin interface.
+
+> **Built by [Front Tribe](https://fronttribe.com)** - We create powerful tools for modern web development.
+
+## ✨ Features
 
 - **🔍 Lightning-Fast Search**: Powered by Typesense for sub-millisecond search performance
-- **🔄 Real-time Sync**: Automatically syncs Payload CMS collections with Typesense
+- **🔄 Real-time Sync**: Automatically syncs Payload CMS collections with Typesense on create/update/delete
 - **🎯 Typo Tolerance**: Built-in typo tolerance and fuzzy matching for better user experience
 - **🏷️ Faceted Search**: Support for faceted search and filtering by categories, status, etc.
+- **📝 RichText Support**: Properly extracts and indexes content from Payload's richText fields
 - **🎨 Admin Interface**: Beautiful built-in search interface in Payload admin panel
 - **🌐 RESTful API**: Complete search endpoints for frontend integration
 - **📱 Responsive Design**: Mobile-first responsive design for all screen sizes
 - **🔧 TypeScript Support**: Full TypeScript support with comprehensive type definitions
-- **✅ Production Ready**: Comprehensive testing, error handling, and performance optimization
+- **✅ Production Ready**: Comprehensive error handling, graceful fallbacks, and performance optimization
 - **🐳 Docker Support**: Easy setup with Docker Compose
+- **🔄 Auto-Sync**: Automatic collection creation and schema management
 
-## 📦 Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - **Node.js**: Version 22.19.0 or higher (see `.nvmrc` file)
 - **Payload CMS**: Version 3.x
 - **Typesense**: Version 0.25+ (or use Docker)
-- **Docker and Docker Compose** (for Typesense)
+- **Package Manager**: pnpm (recommended)
 
-### 1. Setup Node.js Version
-
-```bash
-# Use the correct Node.js version (if using nvm)
-nvm use
-
-# Or install Node.js 22.19.0+ manually
-```
-
-### 2. Install Dependencies
+### 1. Install the Plugin
 
 ```bash
-# Install the plugin
-pnpm install typesense-search
+# Using pnpm (recommended)
+pnpm add @fronttribe/typesense-search typesense
 
-# Install Typesense client
-pnpm install typesense
+# Using npm
+npm install @fronttribe/typesense-search typesense
+
+# Using yarn
+yarn add @fronttribe/typesense-search typesense
 ```
 
-### 3. Set Up Typesense Server
+### 2. Set Up Typesense Server
 
 ```bash
 # Start Typesense with Docker Compose
@@ -54,20 +57,21 @@ curl http://localhost:8108/health
 # Should return: {"ok":true}
 ```
 
-### 4. Configure the Plugin
+### 3. Configure the Plugin
 
 Add the plugin to your Payload configuration:
 
 ```typescript
 // payload.config.ts
 import { buildConfig } from 'payload'
-import { typesenseSearch } from 'typesense-search'
+import { typesenseSearch } from '@fronttribe/typesense-search'
 
 export default buildConfig({
   // ... your existing config
   plugins: [
     typesenseSearch({
       typesense: {
+        apiKey: 'your-api-key',
         nodes: [
           {
             host: 'localhost',
@@ -75,8 +79,6 @@ export default buildConfig({
             protocol: 'http',
           },
         ],
-        apiKey: 'xyz', // Change this in production
-        connectionTimeoutSeconds: 2,
       },
       collections: {
         posts: {
@@ -99,19 +101,110 @@ export default buildConfig({
 })
 ```
 
-## 🔧 Configuration Options
+### 4. Start Your Application
 
-### Typesense Configuration
+```bash
+# Using pnpm
+pnpm dev
+
+# Using npm
+npm run dev
+
+# Using yarn
+yarn dev
+```
+
+That's it! Your search functionality is now ready to use.
+
+## 📖 Usage
+
+### Basic Search
 
 ```typescript
-typesense: {
-  nodes: Array<{
-    host: string
-    port: string | number
-    protocol: 'http' | 'https'
-  }>
-  apiKey: string
-  connectionTimeoutSeconds?: number // Default: 2
+// Search posts
+const response = await fetch('/api/search/posts?q=your search query')
+const results = await response.json()
+
+console.log(`Found ${results.found} results in ${results.search_time_ms}ms`)
+```
+
+### Advanced Search
+
+```typescript
+// Advanced search with filters and pagination
+const searchParams = new URLSearchParams({
+  q: 'typescript',
+  page: '1',
+  per_page: '10',
+  category: 'programming',
+  status: 'published',
+  sort_by: 'createdAt:desc',
+})
+
+const response = await fetch(`/api/search/posts?${searchParams}`)
+const results = await response.json()
+```
+
+### Headless Search Component
+
+```tsx
+import HeadlessSearchInput from '@fronttribe/typesense-search'
+
+function MySearchPage() {
+  const handleResultClick = (result) => {
+    console.log('Result clicked:', result)
+    // Navigate to result page or show details
+  }
+
+  return (
+    <div>
+      <h1>Search Our Content</h1>
+      <HeadlessSearchInput
+        baseUrl="http://localhost:3000"
+        collection="posts"
+        placeholder="Search posts..."
+        onResultClick={handleResultClick}
+        debounceMs={300}
+        minQueryLength={2}
+        perPage={10}
+      />
+    </div>
+  )
+}
+```
+
+## 🔧 Configuration
+
+### Plugin Options
+
+```typescript
+interface TypesenseSearchConfig {
+  typesense: {
+    nodes: Array<{
+      host: string
+      port: string | number
+      protocol: 'http' | 'https'
+    }>
+    apiKey: string
+    connectionTimeoutSeconds?: number
+  }
+  collections?: Partial<
+    Record<
+      CollectionSlug,
+      {
+        enabled: boolean
+        searchFields?: string[]
+        facetFields?: string[]
+        sortFields?: string[]
+      }
+    >
+  >
+  settings?: {
+    autoSync?: boolean
+    batchSize?: number
+    searchEndpoint?: string
+  }
+  disabled?: boolean
 }
 ```
 
@@ -119,270 +212,197 @@ typesense: {
 
 ```typescript
 collections: {
-  [collectionSlug]: {
-    enabled: boolean
-    searchFields?: string[]      // Fields to search in
-    facetFields?: string[]       // Fields for faceting/filtering
-    sortFields?: string[]        // Fields available for sorting
+  posts: {
+    enabled: true,                    // Enable search for this collection
+    searchFields: ['title', 'content'], // Fields to search in
+    facetFields: ['category', 'status'], // Fields for faceted search
+    sortFields: ['createdAt', 'title']   // Fields available for sorting
   }
 }
-```
-
-### Plugin Settings
-
-```typescript
-settings: {
-  autoSync?: boolean             // Enable/disable auto-sync (default: true)
-  batchSize?: number            // Batch size for syncing (default: 100)
-  searchEndpoint?: string       // Custom search endpoint path (default: '/api/search')
-}
-```
-
-## 🔍 Search API Endpoints
-
-The plugin provides comprehensive search endpoints that can be used from your frontend or other services.
-
-### Basic Search
-
-```http
-GET /api/search/{collection}?q={query}&page={page}&per_page={per_page}
-```
-
-**Example:**
-
-```bash
-curl "http://localhost:3000/api/search/posts?q=typesense&per_page=5"
-```
-
-### Advanced Search with POST
-
-```http
-POST /api/search/{collection}
-Content-Type: application/json
-
-{
-  "q": "search query",
-  "query_by": "title,content",
-  "filter_by": "category:=news",
-  "sort_by": "createdAt:desc",
-  "per_page": 10,
-  "page": 1,
-  "highlight_full_fields": "title,content",
-  "snippet_threshold": 30,
-  "num_typos": 2
-}
-```
-
-### Search Suggestions
-
-```http
-GET /api/search/{collection}/suggest?q={query}&limit={limit}
-```
-
-**Example:**
-
-```bash
-curl "http://localhost:3000/api/search/posts/suggest?q=typ&limit=3"
 ```
 
 ## 🎨 Admin Interface
 
 The plugin automatically adds a beautiful search interface to your Payload admin panel:
 
-- **📊 Collection Statistics**: Real-time document counts and field information
-- **🔍 Search Interface**: Live search with collection selector
-- **✨ Search Results**: Highlighted results with snippets
-- **💡 Suggestions**: Auto-complete suggestions as you type
-- **📱 Responsive**: Works perfectly on all devices
+- **Real-time search** with instant results
+- **Faceted filtering** by categories and status
+- **Search statistics** and performance metrics
+- **Responsive design** for all screen sizes
+- **Keyboard navigation** support
 
-## 🧪 Testing
+## 🌐 API Endpoints
 
-### Run All Tests
+### Search Endpoints
 
-```bash
-# Run integration and E2E tests
-pnpm test
+| Endpoint                          | Method | Description                        |
+| --------------------------------- | ------ | ---------------------------------- |
+| `/api/search/:collection`         | GET    | Basic search with query parameters |
+| `/api/search/:collection`         | POST   | Advanced search with JSON body     |
+| `/api/search/:collection/suggest` | GET    | Search suggestions/autocomplete    |
 
-# Run only integration tests
-pnpm test:int
+### Query Parameters
 
-# Run only E2E tests
-pnpm test:e2e
+| Parameter   | Type   | Description                                           |
+| ----------- | ------ | ----------------------------------------------------- |
+| `q`         | string | Search query (required)                               |
+| `page`      | number | Page number (default: 1)                              |
+| `per_page`  | number | Results per page (default: 10)                        |
+| `sort_by`   | string | Sort field and direction (e.g., `createdAt:desc`)     |
+| `filter_by` | string | Filter by field value (e.g., `category:=programming`) |
+
+### Response Format
+
+```typescript
+interface SearchResponse {
+  found: number
+  search_time_ms: number
+  hits: Array<{
+    document: {
+      id: string
+      title: string
+      content: string
+      // ... other fields
+    }
+    highlight: {
+      [field: string]: string
+    }
+  }>
+  facet_counts: Array<{
+    field_name: string
+    counts: Array<{
+      count: number
+      highlighted: string
+      value: string
+    }>
+  }>
+}
 ```
 
-### Test Typesense Connection
+## 🔄 Real-time Synchronization
+
+The plugin automatically syncs your Payload CMS data with Typesense:
+
+- **Create**: New documents are automatically indexed
+- **Update**: Modified documents are automatically updated
+- **Delete**: Deleted documents are automatically removed
+- **RichText**: Content from richText fields is properly extracted
+- **Error Handling**: Graceful handling of sync errors and missing collections
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 22.19.0+
+- pnpm
+- Docker and Docker Compose
+
+### Setup
 
 ```bash
-# Test Typesense connection and basic functionality
-npx tsx dev/test-typesense.ts
-```
+# Clone the repository
+git clone https://github.com/your-username/typesense-search.git
+cd typesense-search
 
-## 🚀 Development
+# Install dependencies
+pnpm install
 
-### Start Development Environment
-
-```bash
 # Start Typesense
 docker-compose up -d
 
-# Start Payload CMS development server
+# Start development server
+cd dev
 pnpm dev
 ```
 
-### Build Plugin
+### Testing
 
 ```bash
-# Build the plugin for production
-pnpm build
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run integration tests
+pnpm test:integration
 ```
 
-## 📁 Project Structure
+## 🐳 Docker Support
 
+The plugin includes Docker Compose configuration for easy Typesense setup:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  typesense:
+    image: typesense/typesense:0.25.1
+    ports:
+      - '8108:8108'
+    volumes:
+      - typesense-data:/data
+    command: '--data-dir /data --api-key=xyz --enable-cors'
+    environment:
+      - TYPESENSE_DATA_DIR=/data
+
+volumes:
+  typesense-data:
 ```
-src/
-├── index.ts                           # Main plugin entry point
-├── lib/
-│   ├── typesense-client.ts            # Typesense client setup
-│   ├── schema-mapper.ts               # Collection schema mapping
-│   ├── hooks.ts                      # Auto-sync hooks
-│   └── initialization.ts             # Collection initialization
-├── endpoints/
-│   ├── search.ts                     # Search API endpoints
-│   └── customEndpointHandler.ts      # Custom endpoint example
-├── components/
-│   ├── BeforeDashboardClient.tsx     # Client-side search UI
-│   ├── BeforeDashboardServer.tsx     # Server-side statistics
-│   └── BeforeDashboardServer.module.css
-└── exports/
-    ├── client.ts                     # Client exports
-    └── rsc.ts                        # RSC exports
-```
-
-## 🔄 How It Works
-
-1. **🚀 Initialization**: Plugin creates Typesense collections based on your Payload collections
-2. **🔄 Auto-Sync**: Hooks automatically sync data when documents are created/updated/deleted
-3. **🔍 Search**: Provides RESTful search endpoints that query Typesense
-4. **🎨 Admin UI**: Built-in search interface appears in your Payload admin panel
-5. **⚡ Performance**: Optimized for speed with caching and efficient queries
-
-## 🛠️ Customization
-
-### Custom Search Fields
-
-```typescript
-collections: {
-  posts: {
-    enabled: true,
-    searchFields: ['title', 'content', 'excerpt', 'tags'],
-    facetFields: ['category', 'status', 'author', 'publishedAt']
-  }
-}
-```
-
-### Custom Search Parameters
-
-```typescript
-// Frontend integration example
-const searchResults = await fetch('/api/search/posts', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    q: 'search query',
-    query_by: 'title,content',
-    filter_by: 'status:=published',
-    sort_by: 'createdAt:desc',
-    highlight_full_fields: 'title,content',
-    snippet_threshold: 30,
-    num_typos: 2,
-  }),
-})
-```
-
-### Custom Styling
-
-The admin interface uses CSS modules for easy customization:
-
-```css
-/* Override styles in your admin CSS */
-.typesense-search-wrapper {
-  /* Your custom styles */
-}
-```
-
-## 🐛 Troubleshooting
-
-### Typesense Connection Issues
-
-1. **Check if Typesense is running:**
-
-   ```bash
-   docker-compose ps
-   curl http://localhost:8108/health
-   ```
-
-2. **Verify API key in configuration**
-3. **Check network connectivity**
-
-### Sync Issues
-
-1. **Check console logs for sync errors**
-2. **Verify collection configuration**
-3. **Test with manual sync**
-
-### Search Issues
-
-1. **Verify search fields are configured correctly**
-2. **Check if documents are synced to Typesense**
-3. **Test search endpoints directly**
-
-### Node.js Version Issues
-
-- **Requirement**: Node.js 18+ for full Next.js compatibility
-- **Current**: If using Node.js 16, core functionality works but development server may not start
 
 ## 📊 Performance
 
-- **Search Speed**: Sub-millisecond search responses
-- **Memory Usage**: Optimized for minimal memory footprint
-- **Scalability**: Handles thousands of documents efficiently
-- **Caching**: Built-in caching for better performance
+- **Sub-millisecond search** response times
+- **Typo tolerance** with configurable thresholds
+- **Fuzzy matching** for better search results
+- **Faceted search** for efficient filtering
+- **Pagination** for large result sets
+- **Caching** for improved performance
 
 ## 🔒 Security
 
-- **API Key Protection**: Secure API key handling
-- **Input Validation**: Comprehensive input validation
-- **Error Handling**: Secure error handling without data leakage
-- **CORS Support**: Configurable CORS settings
-
-## 📚 Resources
-
-- [Typesense Documentation](https://typesense.org/docs/)
-- [Payload CMS Plugins](https://payloadcms.com/docs/plugins/overview)
-- [Typesense JavaScript Client](https://github.com/typesense/typesense-js)
-- [Next.js Documentation](https://nextjs.org/docs)
+- **API key authentication** for Typesense
+- **Input validation** and sanitization
+- **Error handling** without exposing sensitive information
+- **Rate limiting** support (configure in your application)
 
 ## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Create a feature branch
 3. Make your changes
-4. Add tests for new functionality
-5. Run tests (`pnpm test`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+4. Add tests
+5. Submit a pull request
 
-## 📄 License
+## 📝 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - [Typesense](https://typesense.org/) for the amazing search engine
 - [Payload CMS](https://payloadcms.com/) for the excellent headless CMS
-- [Next.js](https://nextjs.org/) for the powerful React framework
+- All contributors who help make this plugin better
+
+## 📞 Support
+
+- **Documentation**: [Full Documentation](https://github.com/fronttribe/typesense-search/wiki)
+- **Issues**: [GitHub Issues](https://github.com/fronttribe/typesense-search/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/fronttribe/typesense-search/discussions)
+- **Website**: [Front Tribe](https://fronttribe.com)
+
+## 🗺️ Roadmap
+
+- [ ] **v1.1.0**: Advanced search filters and sorting
+- [ ] **v1.2.0**: Search analytics and insights
+- [ ] **v1.3.0**: Multi-language support
+- [ ] **v1.4.0**: Search result ranking customization
+- [ ] **v2.0.0**: GraphQL support
 
 ---
 
-**Made with ❤️ for the Payload CMS community**
+Made with ❤️ by [Front Tribe](https://fronttribe.com) for the Payload CMS community

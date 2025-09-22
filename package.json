@@ -1,7 +1,7 @@
 {
-  "name": "typesense-search",
+  "name": "@fronttribe/typesense-search",
   "version": "1.0.0",
-  "description": "A blank template to get started with Payload 3.0",
+  "description": "A powerful, production-ready search plugin that integrates Typesense with Payload CMS, providing lightning-fast, typo-tolerant search capabilities with real-time synchronization.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -84,9 +84,35 @@
     "payload": "^3.37.0"
   },
   "engines": {
-    "node": "^18.20.2 || >=20.9.0",
+    "node": "^22.19.0 || >=20.9.0",
     "pnpm": "^9 || ^10"
   },
+  "keywords": [
+    "payload",
+    "payloadcms",
+    "typesense",
+    "search",
+    "plugin",
+    "cms",
+    "headless",
+    "typescript",
+    "react",
+    "nextjs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fronttribe/typesense-search.git"
+  },
+  "homepage": "https://github.com/fronttribe/typesense-search#readme",
+  "bugs": {
+    "url": "https://github.com/fronttribe/typesense-search/issues"
+  },
+  "author": {
+    "name": "Front Tribe",
+    "email": "hello@fronttribe.com",
+    "url": "https://fronttribe.com"
+  },
+  "publisher": "fronttribe",
   "publishConfig": {
     "exports": {
       ".": {
