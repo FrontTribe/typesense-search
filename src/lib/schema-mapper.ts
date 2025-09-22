@@ -35,7 +35,7 @@ export const mapCollectionToTypesenseSchema = (
 ) => {
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
-  
+
   console.log(`🔍 Schema mapper - Collection: ${collectionSlug}`)
   console.log(`🔍 Schema mapper - Search fields:`, searchableFields)
   console.log(`🔍 Schema mapper - Facet fields:`, facetFields)
@@ -53,6 +53,8 @@ export const mapCollectionToTypesenseSchema = (
     type: 'string' as const,
     facet: facetFields.includes(field),
   }))
+  
+  console.log(`🔍 Schema mapper - Mapped search fields:`, searchFields)
 
   // Map facet-only fields (not in searchable fields)
   const facetOnlyFields = facetFields
@@ -63,10 +65,14 @@ export const mapCollectionToTypesenseSchema = (
       facet: true,
     }))
 
-  return {
+  const finalSchema = {
     name: collectionSlug,
     fields: [...baseFields, ...searchFields, ...facetOnlyFields],
   }
+  
+  console.log(`🔍 Schema mapper - Final schema:`, JSON.stringify(finalSchema, null, 2))
+  
+  return finalSchema
 }
 
 export const mapPayloadDocumentToTypesense = (
