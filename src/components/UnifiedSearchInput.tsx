@@ -5,6 +5,9 @@ export interface SearchHit {
   document: any
   highlight?: Record<string, string>
   text_match?: number
+  collection?: string
+  displayName?: string
+  icon?: string
 }
 
 export interface SearchResponse {
@@ -37,6 +40,7 @@ export interface UnifiedSearchInputProps {
   onSearch?: (query: string) => void
   onResults?: (results: SearchResponse) => void
   onResultClick?: (result: SearchHit) => void
+  onError?: (error: string) => void
   renderResult?: (hit: SearchHit, index: number) => React.ReactNode
   renderNoResults?: (query: string) => React.ReactNode
   renderLoading?: () => React.ReactNode
@@ -57,6 +61,7 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
   onSearch,
   onResults,
   onResultClick,
+  onError,
   renderResult,
   renderNoResults,
   renderLoading,
@@ -83,7 +88,9 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
   useEffect(() => {
     const fetchCollectionMetadata = async () => {
       try {
-        const response = await fetch(`${baseUrl}/api/search/collections`)
+        // Ensure baseUrl ends with /api for proper endpoint construction
+        const apiBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`
+        const response = await fetch(`${apiBaseUrl}/search/collections`)
 
         if (response.ok) {
           const data = await response.json()
@@ -115,62 +122,25 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
       setError(null)
 
       try {
-        // Use collection metadata if available, otherwise fall back to collections prop
-        const collectionsToSearch =
-          collectionMetadata.length > 0 ? collectionMetadata.map((c) => c.slug) : collections || []
+        // Ensure baseUrl ends with /api for proper endpoint construction
+        const apiBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`
 
-        // Search all collections in parallel
-        const searchPromises = collectionsToSearch.map(async (collection) => {
-          const searchUrl = `${baseUrl}/api/search/${collection}?q=${encodeURIComponent(searchQuery)}&per_page=${perPage}`
-          const response = await fetch(searchUrl)
+        // Use universal search endpoint to search across all collections
+        const searchUrl = `${apiBaseUrl}/search?q=${encodeURIComponent(searchQuery)}&per_page=${perPage}`
+        const response = await fetch(searchUrl)
 
-          if (!response.ok) {
-            throw new Error(
-              `Search failed for ${collection}: ${response.status} ${response.statusText}`,
-            )
-          }
-
-          const searchResults: SearchResponse = await response.json()
-          return {
-            collection,
-            results: searchResults,
-          }
-        })
-
-        const searchResults = await Promise.all(searchPromises)
-
-        // Combine results from all collections
-        const combinedHits: SearchHit[] = []
-        let totalFound = 0
-        let totalSearchTime = 0
-
-        searchResults.forEach(({ collection, results }) => {
-          if (results.hits) {
-            results.hits.forEach((hit) => {
-              combinedHits.push({
-                ...hit,
-                document: {
-                  ...hit.document,
-                  _collection: collection,
-                },
-              })
-            })
-          }
-          totalFound += results.found || 0
-          totalSearchTime += results.search_time_ms || 0
-        })
-
-        const combinedResults: SearchResponse = {
-          found: totalFound,
-          hits: combinedHits,
-          search_time_ms: totalSearchTime,
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.status} ${response.statusText}`)
         }
 
-        setResults(combinedResults)
-        onResultsRef.current?.(combinedResults)
+        const searchResults: SearchResponse = await response.json()
+        setResults(searchResults)
+        onResultsRef.current?.(searchResults)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Search failed')
+        const errorMessage = err instanceof Error ? err.message : 'Search failed'
+        setError(errorMessage)
         setResults(null)
+        onError?.(errorMessage)
       } finally {
         setIsLoading(false)
       }
@@ -242,16 +212,22 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
     const result = hit.document
     const highlight = Object.values(hit.highlight || {}).join(' ... ')
 
-    // Find collection metadata
-    const collectionMeta = collectionMetadata.find((c) => c.slug === result._collection)
-    const collectionIcon = collectionMeta?.icon || '📄'
+    // Find collection metadata - check both hit.collection and result._collection
+    const collectionSlug = hit.collection || result._collection || result.collection || 'unknown'
+    const collectionMeta = collectionMetadata.find((c) => c.slug === collectionSlug)
+
+    // Use collection metadata from the hit first, then fallback to collectionMetadata
+    const collectionIcon = hit.icon || collectionMeta?.icon || '📄'
     const collectionName =
+      hit.displayName ||
       collectionMeta?.displayName ||
-      result._collection.charAt(0).toUpperCase() + result._collection.slice(1)
+      (collectionSlug && collectionSlug !== 'unknown'
+        ? collectionSlug.charAt(0).toUpperCase() + collectionSlug.slice(1)
+        : 'Unknown Collection')
 
     return (
       <div
-        key={`${result._collection}-${result.id || index}`}
+        key={`${collectionSlug}-${result.id || index}`}
         className={styles.searchResult}
         onClick={() => handleResultClick(hit)}
       >
@@ -260,7 +236,7 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
           <span className={styles.collectionName}>{collectionName}</span>
         </div>
         <h3 className={styles.resultTitle}>
-          {result.title || result.filename || `Document ${result.id}`}
+          {result.title || result.filename || result.name || `Document ${result.id || index}`}
         </h3>
         {result.shortDescription && (
           <p className={styles.resultDescription}>{result.shortDescription}</p>
@@ -269,8 +245,10 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
           <div className={styles.resultHighlight} dangerouslySetInnerHTML={{ __html: highlight }} />
         )}
         <div className={styles.resultMeta}>
-          <span>ID: {result.id}</span>
-          <span>Updated: {new Date(result.updatedAt).toLocaleDateString()}</span>
+          <span>ID: {result.id || 'N/A'}</span>
+          <span>
+            Updated: {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'N/A'}
+          </span>
         </div>
       </div>
     )

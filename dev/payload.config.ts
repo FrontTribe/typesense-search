@@ -157,6 +157,80 @@ const buildConfigWithMemoryDB = async () => {
           },
         ],
       },
+      {
+        slug: 'products',
+        fields: [
+          {
+            name: 'name',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'description',
+            type: 'richText',
+          },
+          {
+            name: 'shortDescription',
+            type: 'text',
+          },
+          {
+            name: 'price',
+            type: 'number',
+            required: true,
+          },
+          {
+            name: 'category',
+            type: 'select',
+            options: [
+              { label: 'Electronics', value: 'electronics' },
+              { label: 'Clothing', value: 'clothing' },
+              { label: 'Books', value: 'books' },
+              { label: 'Home & Garden', value: 'home-garden' },
+              { label: 'Sports', value: 'sports' },
+            ],
+          },
+          {
+            name: 'brand',
+            type: 'text',
+          },
+          {
+            name: 'sku',
+            type: 'text',
+            unique: true,
+          },
+          {
+            name: 'inStock',
+            type: 'checkbox',
+            defaultValue: true,
+          },
+          {
+            name: 'featured',
+            type: 'checkbox',
+            defaultValue: false,
+          },
+          {
+            name: 'status',
+            type: 'select',
+            defaultValue: 'draft',
+            options: [
+              { label: 'Draft', value: 'draft' },
+              { label: 'Published', value: 'published' },
+              { label: 'Discontinued', value: 'discontinued' },
+            ],
+          },
+          {
+            name: 'tags',
+            type: 'array',
+            fields: [
+              {
+                name: 'tag',
+                type: 'text',
+                required: true,
+              },
+            ],
+          },
+        ],
+      },
     ],
     db: mongooseAdapter({
       ensureIndexes: true,
@@ -197,10 +271,16 @@ const buildConfigWithMemoryDB = async () => {
             displayName: 'Portfolio',
             icon: '💼',
           },
+          products: {
+            enabled: true,
+            facetFields: ['category', 'status', 'inStock', 'featured'],
+            searchFields: ['name', 'description', 'shortDescription', 'brand', 'tags.tag'],
+            displayName: 'Products',
+            icon: '🛍️',
+          },
         },
         settings: {
           autoSync: true,
-          searchEndpoint: '/api/search',
           categorized: true,
         },
         typesense: {

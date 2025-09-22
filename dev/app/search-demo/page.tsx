@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import UnifiedSearchInput from '../../../src/components/UnifiedSearchInput.js'
-import type { SearchHit } from '../../../src/components/HeadlessSearchInput.js'
+import UnifiedSearchInput from '../../../src/components/UnifiedSearchInput'
+import type { SearchHit } from '../../../src/components/HeadlessSearchInput'
 
 const SearchDemoPage = () => {
   const [selectedResult, setSelectedResult] = useState<SearchHit['document'] | null>(null)
@@ -12,6 +12,7 @@ const SearchDemoPage = () => {
     totalResults: 0,
     averageResults: 0,
   })
+  const [searchError, setSearchError] = useState<string | null>(null)
 
   const handleResultClick = useCallback((result: SearchHit) => {
     console.log('Result selected:', result.document)
@@ -25,11 +26,17 @@ const SearchDemoPage = () => {
 
   const handleResults = useCallback((results: any) => {
     console.log('Search results:', results)
+    setSearchError(null) // Clear any previous errors
     setSearchStats((prev) => ({
       totalSearches: prev.totalSearches + 1,
       totalResults: prev.totalResults + results.found,
       averageResults: Math.round((prev.totalResults + results.found) / (prev.totalSearches + 1)),
     }))
+  }, [])
+
+  const handleSearchError = useCallback((error: string) => {
+    console.error('Search error:', error)
+    setSearchError(error)
   }, [])
 
   return (
@@ -70,8 +77,55 @@ const SearchDemoPage = () => {
               margin: '0 0 24px 0',
             }}
           >
-            Experience lightning-fast, typo-tolerant search across all collections
+            Experience lightning-fast, typo-tolerant search with universal and collection-specific
+            search
           </p>
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              marginBottom: '24px',
+            }}
+          >
+            <span
+              style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              ✨ Universal Search
+            </span>
+            <span
+              style={{
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              🎯 Collection-Specific
+            </span>
+            <span
+              style={{
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              ⚡ Real-time Sync
+            </span>
+          </div>
         </div>
 
         {/* Search Stats */}
@@ -117,6 +171,130 @@ const SearchDemoPage = () => {
           </div>
         )}
 
+        {/* Search Examples Section */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            padding: '32px',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginBottom: '32px',
+            border: '1px solid #e1e5e9',
+          }}
+        >
+          <h2
+            style={{
+              margin: '0 0 24px 0',
+              color: '#374151',
+              fontSize: '24px',
+              textAlign: 'center',
+            }}
+          >
+            🚀 Search Examples
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            {/* Universal Search */}
+            <div
+              style={{
+                padding: '24px',
+                border: '2px solid #10b981',
+                borderRadius: '12px',
+                backgroundColor: '#f0fdf4',
+              }}
+            >
+              <h3
+                style={{
+                  margin: '0 0 12px 0',
+                  color: '#065f46',
+                  fontSize: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                ✨ Universal Search
+              </h3>
+              <p
+                style={{
+                  margin: '0 0 16px 0',
+                  color: '#047857',
+                  fontSize: '14px',
+                }}
+              >
+                Search across all collections at once
+              </p>
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1fae5',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  color: '#065f46',
+                }}
+              >
+                GET /api/search?q=server
+              </div>
+            </div>
+
+            {/* Collection-Specific Search */}
+            <div
+              style={{
+                padding: '24px',
+                border: '2px solid #3b82f6',
+                borderRadius: '12px',
+                backgroundColor: '#eff6ff',
+              }}
+            >
+              <h3
+                style={{
+                  margin: '0 0 12px 0',
+                  color: '#1e40af',
+                  fontSize: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                🎯 Collection-Specific
+              </h3>
+              <p
+                style={{
+                  margin: '0 0 16px 0',
+                  color: '#2563eb',
+                  fontSize: '14px',
+                }}
+              >
+                Search within specific collections
+              </p>
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #bfdbfe',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  color: '#1e40af',
+                }}
+              >
+                GET /api/search/posts?q=server
+                <br />
+                GET /api/search/portfolio?q=design
+                <br />
+                GET /api/search/products?q=laptop
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Unified Search Component */}
         <div
           style={{
@@ -154,7 +332,7 @@ const SearchDemoPage = () => {
                 fontSize: '16px',
               }}
             >
-              Search across all collections: Posts, Media, and Portfolio
+              Search across all collections: Posts, Portfolio, Products, and Media
             </p>
             <UnifiedSearchInput
               baseUrl="http://localhost:3000"
@@ -162,6 +340,7 @@ const SearchDemoPage = () => {
               onResultClick={handleResultClick}
               onSearch={handleSearch}
               onResults={handleResults}
+              onError={handleSearchError}
               debounceMs={300}
               minQueryLength={2}
               perPage={10}
@@ -169,6 +348,41 @@ const SearchDemoPage = () => {
               showSearchTime={true}
               showResultCount={true}
             />
+
+            {/* Error Display */}
+            {searchError && (
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '12px 16px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#dc2626',
+                  fontSize: '14px',
+                }}
+              >
+                <strong>Search Error:</strong> {searchError}
+              </div>
+            )}
+
+            {/* Debug Info */}
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '12px 16px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: '#64748b',
+              }}
+            >
+              <strong>Debug Info:</strong> Search endpoint:{' '}
+              <code>http://localhost:3000/api/search</code>
+              <br />
+              Collections endpoint: <code>http://localhost:3000/api/search/collections</code>
+            </div>
           </div>
         </div>
 
@@ -339,7 +553,7 @@ const SearchDemoPage = () => {
                   fontSize: '18px',
                 }}
               >
-                🔍 Multi-Collection
+                🌐 Universal Search
               </h4>
               <p
                 style={{
@@ -348,7 +562,28 @@ const SearchDemoPage = () => {
                   lineHeight: '1.6',
                 }}
               >
-                Search across multiple collections simultaneously with unified results.
+                Search across all collections simultaneously with unified results and collection
+                metadata.
+              </p>
+            </div>
+            <div>
+              <h4
+                style={{
+                  color: '#1f2937',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                }}
+              >
+                🎯 Collection-Specific
+              </h4>
+              <p
+                style={{
+                  color: '#6b7280',
+                  margin: 0,
+                  lineHeight: '1.6',
+                }}
+              >
+                Target specific collections for focused, high-performance searches.
               </p>
             </div>
             <div>
@@ -414,6 +649,153 @@ const SearchDemoPage = () => {
           </div>
         </div>
 
+        {/* API Documentation */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            padding: '32px',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginTop: '32px',
+            border: '1px solid #e1e5e9',
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 24px 0',
+              color: '#374151',
+              fontSize: '24px',
+              textAlign: 'center',
+            }}
+          >
+            📚 API Documentation
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            <div>
+              <h4
+                style={{
+                  color: '#1f2937',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                }}
+              >
+                Universal Search
+              </h4>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  color: '#374151',
+                }}
+              >
+                <div style={{ color: '#059669', marginBottom: '8px' }}>
+                  GET /api/search?q=server
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                  Returns results from all enabled collections
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4
+                style={{
+                  color: '#1f2937',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                }}
+              >
+                Collection-Specific
+              </h4>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  color: '#374151',
+                }}
+              >
+                <div style={{ color: '#2563eb', marginBottom: '8px' }}>
+                  GET /api/search/posts?q=server
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                  Returns results only from posts collection
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4
+                style={{
+                  color: '#1f2937',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                }}
+              >
+                Collections List
+              </h4>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  color: '#374151',
+                }}
+              >
+                <div style={{ color: '#7c3aed', marginBottom: '8px' }}>
+                  GET /api/search/collections
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                  Returns list of available collections
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4
+                style={{
+                  color: '#1f2937',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                }}
+              >
+                Search Suggestions
+              </h4>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontFamily: 'monospace',
+                  fontSize: '14px',
+                  color: '#374151',
+                }}
+              >
+                <div style={{ color: '#dc2626', marginBottom: '8px' }}>
+                  GET /api/search/posts/suggest?q=ser
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                  Returns search suggestions for autocomplete
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Usage Instructions */}
         <div
           style={{
@@ -448,7 +830,7 @@ const SearchDemoPage = () => {
                   fontSize: '16px',
                 }}
               >
-                1. Start Typing
+                1. Universal Search
               </h4>
               <p
                 style={{
@@ -458,7 +840,7 @@ const SearchDemoPage = () => {
                   lineHeight: '1.5',
                 }}
               >
-                Type at least 2 characters to trigger the search. Results appear as you type.
+                Use the search box above to search across all collections simultaneously.
               </p>
             </div>
             <div>
@@ -469,7 +851,7 @@ const SearchDemoPage = () => {
                   fontSize: '16px',
                 }}
               >
-                2. Browse Results
+                2. Collection-Specific
               </h4>
               <p
                 style={{
@@ -479,7 +861,7 @@ const SearchDemoPage = () => {
                   lineHeight: '1.5',
                 }}
               >
-                Results are grouped by collection with icons and highlighted matches.
+                Use API endpoints like /api/search/posts?q=term for targeted searches.
               </p>
             </div>
             <div>
@@ -490,7 +872,7 @@ const SearchDemoPage = () => {
                   fontSize: '16px',
                 }}
               >
-                3. Click to View
+                3. View Results
               </h4>
               <p
                 style={{
@@ -500,7 +882,7 @@ const SearchDemoPage = () => {
                   lineHeight: '1.5',
                 }}
               >
-                Click on any result to see its full details and metadata.
+                Results show collection icons, metadata, and highlighted matches.
               </p>
             </div>
             <div>
@@ -511,7 +893,7 @@ const SearchDemoPage = () => {
                   fontSize: '16px',
                 }}
               >
-                4. Try Different Terms
+                4. Real-time Updates
               </h4>
               <p
                 style={{
@@ -521,7 +903,7 @@ const SearchDemoPage = () => {
                   lineHeight: '1.5',
                 }}
               >
-                Experiment with different search terms to explore the content.
+                Search results update automatically when content changes in Payload CMS.
               </p>
             </div>
           </div>
