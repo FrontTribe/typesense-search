@@ -44,7 +44,9 @@
     "sync": "node scripts/sync-data.js",
     "test": "pnpm test:int && pnpm test:e2e",
     "test:e2e": "playwright test",
-    "test:int": "vitest"
+    "test:int": "vitest",
+    "test:unit": "vitest run src/__tests__",
+    "test:watch": "vitest watch src/__tests__"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -57,7 +59,11 @@
     "@payloadcms/ui": "3.37.0",
     "@playwright/test": "^1.52.0",
     "@swc-node/register": "1.10.9",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/user-event": "^14.5.2",
     "@swc/cli": "0.6.0",
+    "jsdom": "^24.0.0",
     "@types/node": "^22.5.4",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",

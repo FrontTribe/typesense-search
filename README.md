@@ -37,6 +37,14 @@ docker run -p 8108:8108 -v/tmp/typesense-data:/data typesense/typesense:0.25.2 -
 # See: https://typesense.org/docs/guide/install-typesense.html
 ```
 
+**Note:** The `typesense-data` folder is created automatically by Typesense when it runs and is already included in `.gitignore`. You don't need to create it manually.
+
+**Alternative:** If you prefer using docker-compose, you can use the included `docker-compose.yml` file:
+
+```bash
+docker-compose up -d
+```
+
 ### 2. Configure Payload CMS
 
 ```typescript
@@ -346,6 +354,7 @@ The plugin provides callback hooks for custom analytics integration:
 5. **"Unknown Collection" in results**: Verify collection metadata is properly configured
 6. **Universal search not working**: Ensure the `/api/search` endpoint is accessible
 7. **Collection categorization issues**: Check that `displayName` and `icon` are set in collection config
+8. **Typesense data folder questions**: The `typesense-data` folder is created automatically by Typesense and is already in `.gitignore`. You don't need to create it manually.
 
 ### Debug Mode
 

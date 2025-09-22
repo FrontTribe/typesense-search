@@ -17,9 +17,11 @@ export default defineConfig(() => {
       }),
     ],
     test: {
-      environment: 'node',
+      environment: 'jsdom',
       hookTimeout: 30_000,
       testTimeout: 30_000,
+      setupFiles: ['./src/__tests__/setup.ts'],
+      globals: true,
     },
   }
 })
