@@ -8,6 +8,8 @@ export interface SearchHit {
   collection?: string
   displayName?: string
   icon?: string
+  // Additional fields for complete data
+  fullDocument?: any
 }
 
 export interface SearchResponse {
@@ -39,11 +41,15 @@ export interface UnifiedSearchInputProps {
   resultsClassName?: string
   onSearch?: (query: string) => void
   onResults?: (results: SearchResponse) => void
-  onResultClick?: (result: SearchHit) => void
+  onResultClick?: (result: SearchHit, fullData: any) => void
   onError?: (error: string) => void
   renderResult?: (hit: SearchHit, index: number) => React.ReactNode
   renderNoResults?: (query: string) => React.ReactNode
   renderLoading?: () => React.ReactNode
+  /**
+   * Include full document data in results
+   */
+  includeFullDocument?: boolean
 }
 
 const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
@@ -65,6 +71,7 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
   renderResult,
   renderNoResults,
   renderLoading,
+  includeFullDocument = true,
 }) => {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResponse | null>(null)
@@ -134,6 +141,15 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
         }
 
         const searchResults: SearchResponse = await response.json()
+        
+        // Enhance results with full document data if requested
+        if (includeFullDocument) {
+          searchResults.hits = searchResults.hits.map(hit => ({
+            ...hit,
+            fullDocument: hit.document,
+          }))
+        }
+        
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
       } catch (err) {
@@ -203,7 +219,26 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
   }
 
   const handleResultClick = (result: SearchHit) => {
-    onResultClick?.(result)
+    // Provide complete data including full document
+    const fullData = {
+      ...result,
+      fullDocument: result.fullDocument || result.document,
+      // Include all available data
+      collection: result.collection,
+      displayName: result.displayName,
+      icon: result.icon,
+      text_match: result.text_match,
+      // Include the original search result data
+      highlight: result.highlight,
+      // Include metadata
+      searchMetadata: {
+        found: results?.found || 0,
+        searchTime: results?.search_time_ms || 0,
+        page: 1,
+      }
+    }
+    
+    onResultClick?.(result, fullData)
     setIsOpen(false)
     setQuery('')
   }
