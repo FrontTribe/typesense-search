@@ -1,23 +1,8 @@
+'use client'
+
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import styles from './HeadlessSearchInput.module.css'
-
-export interface SearchHit {
-  document: any
-  highlight?: Record<string, string>
-  text_match?: number
-  collection?: string
-  displayName?: string
-  icon?: string
-  // Additional fields for complete data
-  fullDocument?: any
-}
-
-export interface SearchResponse {
-  found: number
-  hits: SearchHit[]
-  search_time_ms: number
-  facet_counts?: any[]
-}
+import type { SearchResult, SearchResponse, BaseSearchInputProps } from '../lib/types.js'
 
 export interface CollectionMetadata {
   slug: string
@@ -27,7 +12,7 @@ export interface CollectionMetadata {
   facetFields: string[]
 }
 
-export interface UnifiedSearchInputProps {
+export interface UnifiedSearchInputProps<T = any> extends BaseSearchInputProps<T> {
   baseUrl: string
   collections?: string[]
   placeholder?: string
@@ -40,10 +25,10 @@ export interface UnifiedSearchInputProps {
   inputClassName?: string
   resultsClassName?: string
   onSearch?: (query: string) => void
-  onResults?: (results: SearchResponse) => void
-  onResultClick?: (result: SearchHit, fullData: any) => void
+  onResults?: (results: SearchResponse<T>) => void
+  onResultClick?: (result: SearchResult<T>) => void
   onError?: (error: string) => void
-  renderResult?: (hit: SearchHit, index: number) => React.ReactNode
+  renderResult?: (hit: SearchResult<T>, index: number) => React.ReactNode
   renderNoResults?: (query: string) => React.ReactNode
   renderLoading?: () => React.ReactNode
   /**
@@ -52,7 +37,7 @@ export interface UnifiedSearchInputProps {
   includeFullDocument?: boolean
 }
 
-const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
+const UnifiedSearchInput = <T = any,>({
   baseUrl,
   collections,
   placeholder = 'Search...',
@@ -71,10 +56,9 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
   renderResult,
   renderNoResults,
   renderLoading,
-  includeFullDocument = true,
-}) => {
+}: UnifiedSearchInputProps<T>): React.ReactElement => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResponse | null>(null)
+  const [results, setResults] = useState<SearchResponse<T> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -140,16 +124,8 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
           throw new Error(`Search failed: ${response.status} ${response.statusText}`)
         }
 
-        const searchResults: SearchResponse = await response.json()
-        
-        // Enhance results with full document data if requested
-        if (includeFullDocument) {
-          searchResults.hits = searchResults.hits.map(hit => ({
-            ...hit,
-            fullDocument: hit.document,
-          }))
-        }
-        
+        const searchResults: SearchResponse<T> = await response.json()
+
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
       } catch (err) {
@@ -218,33 +194,14 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
     }
   }
 
-  const handleResultClick = (result: SearchHit) => {
-    // Provide complete data including full document
-    const fullData = {
-      ...result,
-      fullDocument: result.fullDocument || result.document,
-      // Include all available data
-      collection: result.collection,
-      displayName: result.displayName,
-      icon: result.icon,
-      text_match: result.text_match,
-      // Include the original search result data
-      highlight: result.highlight,
-      // Include metadata
-      searchMetadata: {
-        found: results?.found || 0,
-        searchTime: results?.search_time_ms || 0,
-        page: 1,
-      }
-    }
-    
-    onResultClick?.(result, fullData)
+  const handleResultClick = (result: SearchResult<T>) => {
+    onResultClick?.(result)
     setIsOpen(false)
     setQuery('')
   }
 
-  const defaultRenderResult = (hit: SearchHit, index: number) => {
-    const result = hit.document
+  const defaultRenderResult = (hit: SearchResult<T>, index: number) => {
+    const result = hit.document as any
     const highlight = Object.values(hit.highlight || {}).join(' ... ')
 
     // Find collection metadata - check both hit.collection and result._collection
@@ -367,3 +324,4 @@ const UnifiedSearchInput: React.FC<UnifiedSearchInputProps> = ({
 }
 
 export default UnifiedSearchInput
+export { UnifiedSearchInput }

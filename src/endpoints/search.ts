@@ -1,6 +1,9 @@
 import type { PayloadHandler } from 'payload'
 import Typesense from 'typesense'
 import type { TypesenseSearchConfig } from '../index.js'
+import { searchCache } from '../lib/cache.js'
+import { validateSearchParams, getValidationErrors } from '../lib/config-validation.js'
+import { createHealthCheckHandler, createDetailedHealthCheckHandler } from './health.js'
 
 // Universal search across all collections
 const searchAllCollections = async (
@@ -14,6 +17,14 @@ const searchAllCollections = async (
     console.log('Query:', query)
     console.log('Options:', options)
     console.log('Plugin options collections:', Object.keys(pluginOptions.collections || {}))
+
+    // Check cache first
+    const cacheKey = `universal:${query}:${options.page}:${options.per_page}`
+    const cachedResult = searchCache.get(query, 'universal', options)
+    if (cachedResult) {
+      console.log('Returning cached result for query:', query)
+      return Response.json(cachedResult)
+    }
 
     const enabledCollections = Object.entries(pluginOptions.collections || {}).filter(
       ([_, config]) => config?.enabled,
@@ -93,7 +104,7 @@ const searchAllCollections = async (
     // Sort combined results by relevance (text_match score)
     combinedHits.sort((a, b) => (b.text_match || 0) - (a.text_match || 0))
 
-    return Response.json({
+    const searchResult = {
       found: totalFound,
       hits: combinedHits.slice(0, options.per_page),
       page: options.page,
@@ -107,7 +118,12 @@ const searchAllCollections = async (
         found: r.found || 0,
         error: r.error,
       })),
-    })
+    }
+
+    // Cache the result
+    searchCache.set(query, searchResult, 'universal', options)
+
+    return Response.json(searchResult)
   } catch (error) {
     console.error('Universal search error:', error)
     return Response.json(
@@ -123,6 +139,7 @@ const searchAllCollections = async (
 export const createSearchEndpoints = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
+  lastSyncTime?: number,
 ) => {
   return [
     {
@@ -150,6 +167,16 @@ export const createSearchEndpoints = (
       path: '/search',
       handler: createSearchHandler(typesenseClient, pluginOptions),
     },
+    {
+      method: 'get' as const,
+      path: '/search/health',
+      handler: createHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
+    },
+    {
+      method: 'get' as const,
+      path: '/search/health/detailed',
+      handler: createDetailedHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
+    },
   ]
 }
 
@@ -170,6 +197,19 @@ const createSearchHandler = (
       const sort_by = query?.sort_by
 
       console.log('Search handler called with:', { q, page, per_page, sort_by, collectionName })
+
+      // Validate search parameters
+      const searchParams = { q, page, per_page, sort_by }
+      const validation = validateSearchParams(searchParams)
+      if (!validation.success) {
+        return Response.json(
+          {
+            error: 'Invalid search parameters',
+            details: getValidationErrors(validation.errors || []),
+          },
+          { status: 400 }
+        )
+      }
 
       // If no collection specified, search across all enabled collections
       if (!collectionName) {
@@ -221,12 +261,24 @@ const createSearchHandler = (
 
       console.log('Executing Typesense search with parameters:', searchParameters)
 
+      // Check cache first
+      const cacheOptions = { page, per_page, sort_by, collection: collectionName }
+      const cachedResult = searchCache.get(q, collectionName, cacheOptions)
+      if (cachedResult) {
+        console.log('Returning cached result for collection:', collectionName)
+        return Response.json(cachedResult)
+      }
+
       const searchResults = await typesenseClient
         .collections(collectionName)
         .documents()
         .search(searchParameters)
 
       console.log('Search results:', searchResults)
+      
+      // Cache the result
+      searchCache.set(q, searchResults, collectionName, cacheOptions)
+      
       return Response.json(searchResults)
     } catch (error) {
       console.error('Search handler error:', error)

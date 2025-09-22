@@ -67,7 +67,7 @@ export const typesenseSearch =
     // Add search endpoints
     config.endpoints = [
       ...(config.endpoints || []),
-      ...createSearchEndpoints(typesenseClient, pluginOptions),
+      ...createSearchEndpoints(typesenseClient, pluginOptions, Date.now()),
     ]
 
     // Apply hooks to individual collections

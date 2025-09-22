@@ -3,12 +3,23 @@ import type { Payload } from 'payload'
 import type { TypesenseSearchConfig } from '../index.js'
 import { mapCollectionToTypesenseSchema, mapPayloadDocumentToTypesense } from './schema-mapper.js'
 import { testTypesenseConnection } from './typesense-client.js'
+import { validateConfig, getValidationErrors } from './config-validation.js'
 
 export const initializeTypesenseCollections = async (
   payload: Payload,
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
 ) => {
+  // Validate configuration first
+  const validation = validateConfig(pluginOptions)
+  if (!validation.success) {
+    console.error('❌ Plugin configuration validation failed:')
+    console.error(getValidationErrors(validation.errors || []))
+    throw new Error('Invalid plugin configuration')
+  }
+
+  console.log('✅ Plugin configuration validated successfully')
+
   // Test Typesense connection first
   const isConnected = await testTypesenseConnection(typesenseClient)
   if (!isConnected) {

@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import HeadlessSearchInput, { SearchResult, SearchResponse } from './HeadlessSearchInput.js'
+import HeadlessSearchInput from './HeadlessSearchInput.js'
+import type { SearchResult, SearchResponse } from '../lib/types.js'
 import styles from './HeadlessSearchInput.module.css'
 
 // Example usage component
@@ -86,7 +87,7 @@ export const SearchExample: React.FC = () => {
           Category: {result.document.category}
         </span>
         <span style={{ fontSize: '12px', color: '#9ca3af' }}>
-          Updated: {new Date(result.updatedAt).toLocaleDateString()}
+          Updated: {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'Unknown'}
         </span>
       </div>
     </div>
@@ -153,7 +154,6 @@ export const SearchExample: React.FC = () => {
           placeholder="Search posts..."
           onResultClick={handleResultClick}
           onSearch={handleSearch}
-          onResults={handleResults}
           className={styles['headless-search-input']}
         />
       </div>
@@ -175,7 +175,6 @@ export const SearchExample: React.FC = () => {
           renderLoading={customRenderLoading}
           onResultClick={handleResultClick}
           onSearch={handleSearch}
-          onResults={handleResults}
           className={styles['headless-search-input']}
         />
       </div>
@@ -237,7 +236,7 @@ export const SearchExample: React.FC = () => {
             <p style={{ margin: '0 0 8px 0', color: '#6b7280' }}>
               Category: {selectedResult.document.category} | Status:{' '}
               {selectedResult.document.status} | Updated:{' '}
-              {new Date(selectedResult.updatedAt).toLocaleDateString()}
+              {selectedResult.updatedAt ? new Date(selectedResult.updatedAt).toLocaleDateString() : 'Unknown'}
             </p>
             {selectedResult.content && (
               <p style={{ margin: 0, color: '#374151', lineHeight: '1.6' }}>

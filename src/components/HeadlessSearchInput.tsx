@@ -1,35 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import type { SearchResult, SearchResponse, BaseSearchInputProps } from '../lib/types.js'
 
-export interface SearchResult {
-  id: string
-  title: string
-  content?: string
-  highlight?: string
-  updatedAt: string
-  document: any
-  // Additional fields for complete data
-  collection?: string
-  displayName?: string
-  icon?: string
-  text_match?: number
-  // Full document data
-  fullDocument?: any
-}
-
-export interface SearchResponse {
-  hits: SearchResult[]
-  found: number
-  page: number
-  search_time_ms: number
-}
-
-export interface HeadlessSearchInputProps {
-  /**
-   * Base URL of your Payload CMS instance
-   */
-  baseUrl: string
+export interface HeadlessSearchInputProps<T = any> extends BaseSearchInputProps<T> {
   /**
    * Collection to search in
    */
@@ -39,22 +13,6 @@ export interface HeadlessSearchInputProps {
    */
   perPage?: number
   /**
-   * Debounce delay in milliseconds
-   */
-  debounceMs?: number
-  /**
-   * Placeholder text for the input
-   */
-  placeholder?: string
-  /**
-   * Custom CSS class for the container
-   */
-  className?: string
-  /**
-   * Custom CSS class for the input
-   */
-  inputClassName?: string
-  /**
    * Custom CSS class for the results container
    */
   resultsClassName?: string
@@ -62,42 +20,6 @@ export interface HeadlessSearchInputProps {
    * Custom CSS class for individual result items
    */
   resultItemClassName?: string
-  /**
-   * Custom CSS class for the input wrapper
-   */
-  inputWrapperClassName?: string
-  /**
-   * Custom CSS class for the results list
-   */
-  resultsListClassName?: string
-  /**
-   * Custom CSS class for the results header
-   */
-  resultsHeaderClassName?: string
-  /**
-   * Custom CSS class for loading state
-   */
-  loadingClassName?: string
-  /**
-   * Custom CSS class for error state
-   */
-  errorClassName?: string
-  /**
-   * Custom CSS class for no results state
-   */
-  noResultsClassName?: string
-  /**
-   * Callback when search results are received
-   */
-  onResults?: (results: SearchResponse) => void
-  /**
-   * Callback when search is performed
-   */
-  onSearch?: (query: string) => void
-  /**
-   * Callback when a result is clicked - provides complete data
-   */
-  onResultClick?: (result: SearchResult, fullData: any) => void
   /**
    * Show loading state
    */
@@ -111,17 +33,13 @@ export interface HeadlessSearchInputProps {
    */
   showResultCount?: boolean
   /**
-   * Minimum query length to trigger search
-   */
-  minQueryLength?: number
-  /**
    * Enable suggestions
    */
   enableSuggestions?: boolean
   /**
    * Custom render function for results
    */
-  renderResult?: (result: SearchResult, index: number) => React.ReactNode
+  renderResult?: (result: SearchResult<T>, index: number) => React.ReactNode
   /**
    * Custom render function for no results
    */
@@ -139,10 +57,6 @@ export interface HeadlessSearchInputProps {
    */
   renderResultsHeader?: (found: number, searchTime: number) => React.ReactNode
   /**
-   * Include full document data in results
-   */
-  includeFullDocument?: boolean
-  /**
    * Custom input element (for complete control)
    */
   renderInput?: (props: {
@@ -157,7 +71,7 @@ export interface HeadlessSearchInputProps {
   }) => React.ReactNode
 }
 
-export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
+const HeadlessSearchInput = <T = any>({
   baseUrl,
   collection,
   perPage = 10,
@@ -186,11 +100,10 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
   renderLoading,
   renderError,
   renderResultsHeader,
-  includeFullDocument = true,
   renderInput,
-}) => {
+}: HeadlessSearchInputProps<T>): React.ReactElement => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResponse | null>(null)
+  const [results, setResults] = useState<SearchResponse<T> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -225,20 +138,7 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
           throw new Error(`Search failed: ${response.status} ${response.statusText}`)
         }
 
-        const searchResults: SearchResponse = await response.json()
-        
-        // Enhance results with full document data if requested
-        if (includeFullDocument) {
-          searchResults.hits = searchResults.hits.map(hit => ({
-            ...hit,
-            fullDocument: hit.document,
-            // Ensure we have all the data from the search result
-            collection: hit.collection || collection,
-            displayName: hit.displayName,
-            icon: hit.icon,
-            text_match: hit.text_match,
-          }))
-        }
+        const searchResults: SearchResponse<T> = await response.json()
         
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
@@ -261,7 +161,7 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
     if (query.length >= minQueryLength) {
       debounceRef.current = setTimeout(() => {
         performSearch(query)
-        onSearchRef.current?.(query)
+        onSearchRef.current?.(query, results || { found: 0, hits: [], page: 1, search_time_ms: 0, request_params: { q: query, per_page: 10 }, search_cutoff: false })
       }, debounceMs)
     } else {
       setResults(null)
@@ -300,27 +200,8 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
   }
 
   // Handle result click
-  const handleResultClick = (result: SearchResult) => {
-    // Provide complete data including full document
-    const fullData = {
-      ...result,
-      fullDocument: result.fullDocument || result.document,
-      // Include all available data
-      collection: result.collection || collection,
-      displayName: result.displayName,
-      icon: result.icon,
-      text_match: result.text_match,
-      // Include the original search result data
-      highlight: result.highlight,
-      // Include metadata
-      searchMetadata: {
-        found: results?.found || 0,
-        searchTime: results?.search_time_ms || 0,
-        page: results?.page || 1,
-      }
-    }
-    
-    onResultClick?.(result, fullData)
+  const handleResultClick = (result: SearchResult<T>) => {
+    onResultClick?.(result)
     setIsOpen(false)
     setQuery('')
   }
@@ -383,7 +264,7 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
         />
       )}
       <div className="search-result-meta">
-        Updated: {new Date(result.updatedAt).toLocaleDateString()}
+        Updated: {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'Unknown'}
         {result.text_match && (
           <span className="search-result-match">({result.text_match}% match)</span>
         )}
@@ -488,3 +369,4 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
 }
 
 export default HeadlessSearchInput
+export { HeadlessSearchInput }
