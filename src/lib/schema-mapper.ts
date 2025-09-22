@@ -35,6 +35,10 @@ export const mapCollectionToTypesenseSchema = (
 ) => {
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
+  
+  console.log(`🔍 Schema mapper - Collection: ${collectionSlug}`)
+  console.log(`🔍 Schema mapper - Search fields:`, searchableFields)
+  console.log(`🔍 Schema mapper - Facet fields:`, facetFields)
 
   // Base fields that every collection should have
   const baseFields = [

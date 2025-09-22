@@ -49,6 +49,8 @@ const initializeCollection = async (
   // Create Typesense schema
   const schema = mapCollectionToTypesenseSchema(collection, collectionSlug, config)
   console.log(`🔍 Creating schema for ${collectionSlug}:`, JSON.stringify(schema, null, 2))
+  console.log(`🔍 Search fields from config:`, config?.searchFields)
+  console.log(`🔍 Facet fields from config:`, config?.facetFields)
 
   try {
     // Check if collection exists
