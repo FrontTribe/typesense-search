@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time synchronization between Payload CMS and Typesense
 - Support for create, update, and delete operations
 - RichText field content extraction and indexing
-- Beautiful admin interface with search functionality
 - RESTful API endpoints for search operations
 - Headless search component for frontend integration
 - TypeScript support with comprehensive type definitions
@@ -26,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Search suggestions and autocomplete
 - Performance optimization and caching
 - Comprehensive documentation and examples
+- **Universal Search**: Search across all collections simultaneously
+- **Collection Categorization**: Rich metadata with icons and display names
+- **Plug & Play Setup**: Zero-configuration endpoint registration
+- **Enhanced Error Handling**: Comprehensive error handling and user feedback
+- **Improved TypeScript Support**: Better type definitions and interfaces
 
 ### Features
 
@@ -52,6 +56,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handles richText field extraction
 - Supports faceted search and filtering
 - Includes search suggestions and autocomplete
+
+### Fixed
+
+- **TypeScript Errors**: Fixed error type handling and variable scope issues
+- **Parameter Extraction**: Improved search parameter extraction from Payload CMS requests
+- **Collection Categorization**: Fixed "Unknown Collection" issue in search results
+- **React Component Errors**: Resolved `charAt` errors in search result rendering
+- **Endpoint Routing**: Fixed route conflicts and precedence issues
+- **Server Hot-Reload**: Resolved compilation issues preventing code updates
+- **Error Handling**: Enhanced error handling throughout the search pipeline
+
+### Changed
+
+- **Admin Interface**: Removed configuration error alerts and statistics displays
+- **Search Component**: Updated to use universal search endpoint by default
+- **Collection Metadata**: Improved collection information extraction and display
+- **Error Callbacks**: Added `onError` prop for better error handling
+- **API Endpoints**: Reordered routes to prevent conflicts
+- **Documentation**: Updated with latest features and troubleshooting guides
 
 ### Breaking Changes
 

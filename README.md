@@ -6,12 +6,14 @@ A powerful, production-ready search plugin that integrates Typesense with Payloa
 
 - **⚡ Lightning Fast**: Sub-millisecond search response times powered by Typesense
 - **🎯 Accurate Results**: Precise matching with configurable typo tolerance
-- **🔍 Multi-Collection**: Search across multiple collections simultaneously
+- **🔍 Universal Search**: Search across all collections simultaneously with unified results
+- **🎯 Collection-Specific**: Target specific collections for focused searches
 - **📱 Responsive Design**: Mobile-first design that works on all devices
 - **🎨 Customizable**: Fully customizable UI, search behavior, and result rendering
 - **🔄 Real-time Sync**: Automatic synchronization with Payload CMS changes
-- **📊 Analytics**: Built-in search statistics and analytics
 - **🛡️ Production Ready**: Optimized for production with error handling and performance monitoring
+- **🔌 Plug & Play**: Zero-configuration setup - just add to your Payload config
+- **📊 Rich Metadata**: Collection icons, display names, and categorization
 
 ## 📦 Installation
 
@@ -107,6 +109,10 @@ export default function SearchPage() {
     console.log('Search results:', results)
   }
 
+  const handleError = (error) => {
+    console.error('Search error:', error)
+  }
+
   return (
     <div>
       <h1>Search</h1>
@@ -116,6 +122,7 @@ export default function SearchPage() {
         onResultClick={handleResultClick}
         onSearch={handleSearch}
         onResults={handleResults}
+        onError={handleError}
         debounceMs={300}
         minQueryLength={2}
         perPage={10}
@@ -177,6 +184,7 @@ interface UnifiedSearchInputProps {
   onSearch?: (query: string) => void
   onResults?: (results: SearchResponse) => void
   onResultClick?: (result: SearchHit) => void
+  onError?: (error: string) => void
   renderResult?: (hit: SearchHit, index: number) => React.ReactNode
   renderNoResults?: (query: string) => React.ReactNode
   renderLoading?: () => React.ReactNode
@@ -187,20 +195,25 @@ interface UnifiedSearchInputProps {
 
 The plugin automatically creates the following API endpoints:
 
-- `GET /api/search/collections` - Get available collections
+- `GET /api/search/collections` - Get available collections with metadata
+- `GET /api/search?q={query}` - Universal search across all collections
 - `GET /api/search/{collection}?q={query}` - Search a specific collection
 - `POST /api/search/{collection}` - Advanced search with filters
+- `GET /api/search/{collection}/suggest?q={query}` - Search suggestions for autocomplete
 
 ### Example API Usage
 
 ```typescript
-// Get collections
+// Get collections with metadata
 const collections = await fetch('/api/search/collections').then((r) => r.json())
 
-// Search posts
+// Universal search across all collections
+const universalResults = await fetch('/api/search?q=typescript&per_page=10').then((r) => r.json())
+
+// Search specific collection
 const results = await fetch('/api/search/posts?q=typescript&per_page=10').then((r) => r.json())
 
-// Advanced search
+// Advanced search with filters
 const advancedResults = await fetch('/api/search/posts', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -215,6 +228,9 @@ const advancedResults = await fetch('/api/search/posts', {
     },
   }),
 }).then((r) => r.json())
+
+// Search suggestions for autocomplete
+const suggestions = await fetch('/api/search/posts/suggest?q=typesc').then((r) => r.json())
 ```
 
 ## 🎨 Customization
@@ -290,14 +306,7 @@ const typesenseConfig = {
 
 ## 📊 Monitoring & Analytics
 
-The plugin includes built-in analytics:
-
-- Search query tracking
-- Result click tracking
-- Search performance metrics
-- Error monitoring
-
-Access analytics through the component callbacks:
+The plugin provides callback hooks for custom analytics integration:
 
 ```tsx
 <UnifiedSearchInput
@@ -309,16 +318,19 @@ Access analytics through the component callbacks:
     // Track result clicks
     analytics.track('search_result_clicked', {
       resultId: result.document.id,
-      collection: result.document._collection,
+      collection: result.collection,
     })
   }}
   onResults={(results) => {
     // Track search performance
     analytics.track('search_completed', {
-      query: results.query,
       resultCount: results.found,
       searchTime: results.search_time_ms,
     })
+  }}
+  onError={(error) => {
+    // Track search errors
+    analytics.track('search_error', { error })
   }}
 />
 ```
@@ -331,6 +343,9 @@ Access analytics through the component callbacks:
 2. **No results returned**: Verify collection configuration and data sync
 3. **Slow search**: Check Typesense performance and network latency
 4. **CORS errors**: Ensure Typesense CORS is enabled
+5. **"Unknown Collection" in results**: Verify collection metadata is properly configured
+6. **Universal search not working**: Ensure the `/api/search` endpoint is accessible
+7. **Collection categorization issues**: Check that `displayName` and `icon` are set in collection config
 
 ### Debug Mode
 
@@ -340,7 +355,8 @@ Enable debug logging:
 // In development
 console.log('Search debug:', {
   collections: await fetch('/api/search/collections').then((r) => r.json()),
-  searchResults: await fetch('/api/search/posts?q=test').then((r) => r.json()),
+  universalSearch: await fetch('/api/search?q=test').then((r) => r.json()),
+  collectionSearch: await fetch('/api/search/posts?q=test').then((r) => r.json()),
 })
 ```
 

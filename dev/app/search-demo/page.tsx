@@ -7,11 +7,6 @@ import type { SearchHit } from '../../../src/components/HeadlessSearchInput'
 const SearchDemoPage = () => {
   const [selectedResult, setSelectedResult] = useState<SearchHit['document'] | null>(null)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
-  const [searchStats, setSearchStats] = useState({
-    totalSearches: 0,
-    totalResults: 0,
-    averageResults: 0,
-  })
   const [searchError, setSearchError] = useState<string | null>(null)
 
   const handleResultClick = useCallback((result: SearchHit) => {
@@ -27,11 +22,6 @@ const SearchDemoPage = () => {
   const handleResults = useCallback((results: any) => {
     console.log('Search results:', results)
     setSearchError(null) // Clear any previous errors
-    setSearchStats((prev) => ({
-      totalSearches: prev.totalSearches + 1,
-      totalResults: prev.totalResults + results.found,
-      averageResults: Math.round((prev.totalResults + results.found) / (prev.totalSearches + 1)),
-    }))
   }, [])
 
   const handleSearchError = useCallback((error: string) => {
@@ -127,49 +117,6 @@ const SearchDemoPage = () => {
             </span>
           </div>
         </div>
-
-        {/* Search Stats */}
-        {searchStats.totalSearches > 0 && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              padding: '20px',
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              marginBottom: '32px',
-              border: '1px solid #e1e5e9',
-            }}
-          >
-            <h3
-              style={{
-                margin: '0 0 16px 0',
-                color: '#374151',
-                fontSize: '18px',
-              }}
-            >
-              📊 Search Statistics
-            </h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '16px',
-                fontSize: '14px',
-                color: '#6b7280',
-              }}
-            >
-              <span>
-                Total searches: <strong>{searchStats.totalSearches}</strong>
-              </span>
-              <span>
-                Total results: <strong>{searchStats.totalResults}</strong>
-              </span>
-              <span>
-                Average results: <strong>{searchStats.averageResults}</strong>
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Search Examples Section */}
         <div

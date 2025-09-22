@@ -67,19 +67,6 @@ export const typesenseSearch =
       ...createSearchEndpoints(typesenseClient, pluginOptions),
     ]
 
-    // Add admin components
-    config.admin = {
-      ...config.admin,
-      components: {
-        ...config.admin?.components,
-        beforeDashboard: [
-          ...(config.admin?.components?.beforeDashboard || []),
-          `typesense-search/client#BeforeDashboardClient`,
-          `typesense-search/rsc#BeforeDashboardServer`,
-        ],
-      },
-    }
-
     // Apply hooks to individual collections
     if (pluginOptions.settings?.autoSync !== false && pluginOptions.collections) {
       config.collections = config.collections?.map((collection) => {

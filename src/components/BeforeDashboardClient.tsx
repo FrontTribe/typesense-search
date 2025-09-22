@@ -19,25 +19,6 @@ export const BeforeDashboardClient = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [selectedCollection, setSelectedCollection] = useState('posts')
 
-  // Safety check for config
-  if (!config || !config.serverURL || !config.routes?.api) {
-    return (
-      <div
-        style={{
-          padding: '20px',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          margin: '20px 0',
-          backgroundColor: '#fef2f2',
-          color: '#dc2626',
-        }}
-      >
-        <h2>⚠️ Configuration Error</h2>
-        <p>Search functionality is not available. Please check your Payload configuration.</p>
-      </div>
-    )
-  }
-
   const performSearch = async (query: string) => {
     if (!query.trim()) {
       setSearchResults(null)

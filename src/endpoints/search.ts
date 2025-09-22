@@ -132,16 +132,6 @@ export const createSearchEndpoints = (
     },
     {
       method: 'get' as const,
-      path: '/search/debug',
-      handler: createDebugHandler(),
-    },
-    {
-      method: 'get' as const,
-      path: '/search',
-      handler: createSearchHandler(typesenseClient, pluginOptions),
-    },
-    {
-      method: 'get' as const,
       path: '/search/:collectionName/suggest',
       handler: createSuggestHandler(typesenseClient, pluginOptions),
     },
@@ -154,6 +144,11 @@ export const createSearchEndpoints = (
       method: 'post' as const,
       path: '/search/:collectionName',
       handler: createAdvancedSearchHandler(typesenseClient, pluginOptions),
+    },
+    {
+      method: 'get' as const,
+      path: '/search',
+      handler: createSearchHandler(typesenseClient, pluginOptions),
     },
   ]
 }
@@ -278,11 +273,16 @@ const createSuggestHandler = (
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
   return async (request: any) => {
-    const { params, req } = request
-    const { collectionName } = (params as any) || {}
-    const { q, limit = 5 } = (req as any)?.query || {}
+    // Extract collection name from URL path
+    const url = new URL(request.url)
+    const pathParts = url.pathname.split('/')
+    const collectionName = pathParts[pathParts.indexOf('search') + 1]
 
-    if (!pluginOptions.collections?.[collectionName as any]?.enabled) {
+    // Extract query parameters
+    const q = url.searchParams.get('q')
+    const limit = url.searchParams.get('limit') || '5'
+
+    if (!collectionName || !pluginOptions.collections?.[collectionName as any]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
     }
 
@@ -309,21 +309,6 @@ const createSuggestHandler = (
       console.error('Suggest error:', error)
       return Response.json({ error: 'Suggest failed' }, { status: 500 })
     }
-  }
-}
-
-const createDebugHandler = (): PayloadHandler => {
-  return async (request: any) => {
-    return Response.json({
-      message: 'Debug endpoint - UPDATED VERSION 2',
-      requestType: typeof request,
-      requestKeys: Object.keys(request || {}),
-      requestUrl: request?.url,
-      requestReq: request?.req,
-      requestQuery: request?.query,
-      requestParams: request?.params,
-      fullRequest: JSON.stringify(request, null, 2),
-    })
   }
 }
 
