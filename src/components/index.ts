@@ -6,7 +6,6 @@ export type {
   HeadlessSearchInputProps,
 } from './HeadlessSearchInput.js'
 
-export { default as SearchExample } from './SearchExample.js'
 export { default as UnifiedSearchInput } from './UnifiedSearchInput.js'
 export type {
   SearchHit,

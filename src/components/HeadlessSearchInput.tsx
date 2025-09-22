@@ -9,6 +9,13 @@ export interface SearchResult {
   highlight?: string
   updatedAt: string
   document: any
+  // Additional fields for complete data
+  collection?: string
+  displayName?: string
+  icon?: string
+  text_match?: number
+  // Full document data
+  fullDocument?: any
 }
 
 export interface SearchResponse {
@@ -56,6 +63,30 @@ export interface HeadlessSearchInputProps {
    */
   resultItemClassName?: string
   /**
+   * Custom CSS class for the input wrapper
+   */
+  inputWrapperClassName?: string
+  /**
+   * Custom CSS class for the results list
+   */
+  resultsListClassName?: string
+  /**
+   * Custom CSS class for the results header
+   */
+  resultsHeaderClassName?: string
+  /**
+   * Custom CSS class for loading state
+   */
+  loadingClassName?: string
+  /**
+   * Custom CSS class for error state
+   */
+  errorClassName?: string
+  /**
+   * Custom CSS class for no results state
+   */
+  noResultsClassName?: string
+  /**
    * Callback when search results are received
    */
   onResults?: (results: SearchResponse) => void
@@ -64,9 +95,9 @@ export interface HeadlessSearchInputProps {
    */
   onSearch?: (query: string) => void
   /**
-   * Callback when a result is clicked
+   * Callback when a result is clicked - provides complete data
    */
-  onResultClick?: (result: SearchResult) => void
+  onResultClick?: (result: SearchResult, fullData: any) => void
   /**
    * Show loading state
    */
@@ -99,6 +130,31 @@ export interface HeadlessSearchInputProps {
    * Custom render function for loading state
    */
   renderLoading?: () => React.ReactNode
+  /**
+   * Custom render function for error state
+   */
+  renderError?: (error: string) => React.ReactNode
+  /**
+   * Custom render function for results header
+   */
+  renderResultsHeader?: (found: number, searchTime: number) => React.ReactNode
+  /**
+   * Include full document data in results
+   */
+  includeFullDocument?: boolean
+  /**
+   * Custom input element (for complete control)
+   */
+  renderInput?: (props: {
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onFocus: () => void
+    onBlur: (e: React.FocusEvent) => void
+    onKeyDown: (e: React.KeyboardEvent) => void
+    placeholder: string
+    className: string
+    ref: React.RefObject<HTMLInputElement | null>
+  }) => React.ReactNode
 }
 
 export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
@@ -111,6 +167,12 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
   inputClassName = '',
   resultsClassName = '',
   resultItemClassName = '',
+  inputWrapperClassName = '',
+  resultsListClassName = '',
+  resultsHeaderClassName = '',
+  loadingClassName = '',
+  errorClassName = '',
+  noResultsClassName = '',
   onResults,
   onSearch,
   onResultClick,
@@ -122,6 +184,10 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
   renderResult,
   renderNoResults,
   renderLoading,
+  renderError,
+  renderResultsHeader,
+  includeFullDocument = true,
+  renderInput,
 }) => {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResponse | null>(null)
@@ -160,6 +226,20 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
         }
 
         const searchResults: SearchResponse = await response.json()
+        
+        // Enhance results with full document data if requested
+        if (includeFullDocument) {
+          searchResults.hits = searchResults.hits.map(hit => ({
+            ...hit,
+            fullDocument: hit.document,
+            // Ensure we have all the data from the search result
+            collection: hit.collection || collection,
+            displayName: hit.displayName,
+            icon: hit.icon,
+            text_match: hit.text_match,
+          }))
+        }
+        
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
       } catch (err) {
@@ -221,7 +301,26 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
 
   // Handle result click
   const handleResultClick = (result: SearchResult) => {
-    onResultClick?.(result)
+    // Provide complete data including full document
+    const fullData = {
+      ...result,
+      fullDocument: result.fullDocument || result.document,
+      // Include all available data
+      collection: result.collection || collection,
+      displayName: result.displayName,
+      icon: result.icon,
+      text_match: result.text_match,
+      // Include the original search result data
+      highlight: result.highlight,
+      // Include metadata
+      searchMetadata: {
+        found: results?.found || 0,
+        searchTime: results?.search_time_ms || 0,
+        page: results?.page || 1,
+      }
+    }
+    
+    onResultClick?.(result, fullData)
     setIsOpen(false)
     setQuery('')
   }
@@ -285,36 +384,69 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
       )}
       <div className="search-result-meta">
         Updated: {new Date(result.updatedAt).toLocaleDateString()}
+        {result.text_match && (
+          <span className="search-result-match">({result.text_match}% match)</span>
+        )}
       </div>
     </div>
   )
 
   const defaultRenderNoResults = (query: string) => (
-    <div className="search-no-results">No results found for "{query}"</div>
+    <div className={`search-no-results ${noResultsClassName}`}>
+      No results found for "{query}"
+    </div>
   )
 
   const defaultRenderLoading = () => (
-    <div className="search-loading">
+    <div className={`search-loading ${loadingClassName}`}>
       <div className="search-loading-spinner"></div>
       Searching...
     </div>
   )
 
+  const defaultRenderError = (error: string) => (
+    <div className={`search-error ${errorClassName}`}>
+      Error: {error}
+    </div>
+  )
+
+  const defaultRenderResultsHeader = (found: number, searchTime: number) => (
+    <div className={`search-results-header ${resultsHeaderClassName}`}>
+      {found} result{found !== 1 ? 's' : ''} found
+      {showSearchTime && (
+        <span className="search-time">({searchTime}ms)</span>
+      )}
+    </div>
+  )
+
   return (
     <div className={`headless-search-input ${className}`}>
-      <div className="search-input-container">
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={handleInputChange}
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className={`search-input ${inputClassName}`}
-          autoComplete="off"
-        />
+      <div className={`search-input-container ${inputWrapperClassName}`}>
+        {renderInput ? (
+          renderInput({
+            value: query,
+            onChange: handleInputChange,
+            onFocus: handleInputFocus,
+            onBlur: handleInputBlur,
+            onKeyDown: handleKeyDown,
+            placeholder,
+            className: `search-input ${inputClassName}`,
+            ref: inputRef,
+          })
+        ) : (
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className={`search-input ${inputClassName}`}
+            autoComplete="off"
+          />
+        )}
         {isLoading && showLoading && (
           <div className="search-input-loading">
             {renderLoading ? renderLoading() : defaultRenderLoading()}
@@ -324,29 +456,28 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
 
       {isOpen && (
         <div ref={resultsRef} className={`search-results ${resultsClassName}`}>
-          {error && <div className="search-error">Error: {error}</div>}
+          {error && (
+            renderError ? renderError(error) : defaultRenderError(error)
+          )}
 
           {!error && results && (
             <>
               {showResultCount && (
-                <div className="search-results-header">
-                  {results.found} result{results.found !== 1 ? 's' : ''} found
-                  {showSearchTime && (
-                    <span className="search-time">({results.search_time_ms}ms)</span>
-                  )}
-                </div>
+                renderResultsHeader ? 
+                  renderResultsHeader(results.found, results.search_time_ms) : 
+                  defaultRenderResultsHeader(results.found, results.search_time_ms)
               )}
 
               {results.hits.length > 0 ? (
-                <div className="search-results-list">
+                <div className={`search-results-list ${resultsListClassName}`}>
                   {results.hits.map((result, index) =>
                     renderResult ? renderResult(result, index) : defaultRenderResult(result, index),
                   )}
                 </div>
-              ) : renderNoResults ? (
-                renderNoResults(query)
               ) : (
-                defaultRenderNoResults(query)
+                renderNoResults ? 
+                  renderNoResults(query) : 
+                  defaultRenderNoResults(query)
               )}
             </>
           )}
