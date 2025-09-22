@@ -43,6 +43,7 @@ export const mapCollectionToTypesenseSchema = (
   // Base fields that every collection should have
   const baseFields = [
     { name: 'id', type: 'string' as const },
+    { name: 'slug', type: 'string' as const }, // Always include slug for navigation
     { name: 'createdAt', type: 'int64' as const },
     { name: 'updatedAt', type: 'int64' as const },
   ]
@@ -101,6 +102,7 @@ export const mapPayloadDocumentToTypesense = (
   // Base document structure with safe date handling
   const typesenseDoc: any = {
     id: String(doc.id), // Ensure ID is a string
+    slug: doc.slug || '', // Always include slug for navigation
     createdAt: new Date(doc.createdAt).getTime(),
     updatedAt: new Date(doc.updatedAt).getTime(),
   }
