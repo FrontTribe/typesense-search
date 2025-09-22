@@ -4,7 +4,7 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
-import { typesenseSearch } from 'typesense-search'
+import { typesenseSearch } from '../src/index.js'
 import { fileURLToPath } from 'url'
 
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
@@ -83,6 +83,80 @@ const buildConfigWithMemoryDB = async () => {
           staticDir: path.resolve(dirname, 'media'),
         },
       },
+      {
+        slug: 'portfolio',
+        fields: [
+          {
+            name: 'title',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'description',
+            type: 'richText',
+          },
+          {
+            name: 'shortDescription',
+            type: 'text',
+          },
+          {
+            name: 'technologies',
+            type: 'array',
+            fields: [
+              {
+                name: 'name',
+                type: 'text',
+                required: true,
+              },
+              {
+                name: 'category',
+                type: 'select',
+                options: [
+                  { label: 'Frontend', value: 'frontend' },
+                  { label: 'Backend', value: 'backend' },
+                  { label: 'Database', value: 'database' },
+                  { label: 'DevOps', value: 'devops' },
+                  { label: 'Design', value: 'design' },
+                ],
+              },
+            ],
+          },
+          {
+            name: 'projectUrl',
+            type: 'text',
+          },
+          {
+            name: 'githubUrl',
+            type: 'text',
+          },
+          {
+            name: 'featured',
+            type: 'checkbox',
+            defaultValue: false,
+          },
+          {
+            name: 'status',
+            type: 'select',
+            defaultValue: 'draft',
+            options: [
+              { label: 'Draft', value: 'draft' },
+              { label: 'Published', value: 'published' },
+              { label: 'Archived', value: 'archived' },
+            ],
+          },
+          {
+            name: 'tags',
+            type: 'array',
+            fields: [
+              {
+                name: 'tag',
+                type: 'text',
+                required: true,
+              },
+            ],
+          },
+        ],
+      },
     ],
     db: mongooseAdapter({
       ensureIndexes: true,
@@ -100,16 +174,34 @@ const buildConfigWithMemoryDB = async () => {
             enabled: true,
             facetFields: ['type'],
             searchFields: ['filename', 'alt'],
+            displayName: 'Media Files',
+            icon: '🖼️',
           },
           posts: {
             enabled: true,
             facetFields: ['category', 'status'],
             searchFields: ['title', 'content'],
+            displayName: 'Blog Posts',
+            icon: '📝',
+          },
+          portfolio: {
+            enabled: true,
+            facetFields: ['status', 'featured'],
+            searchFields: [
+              'title',
+              'description',
+              'shortDescription',
+              'technologies.name',
+              'tags.tag',
+            ],
+            displayName: 'Portfolio',
+            icon: '💼',
           },
         },
         settings: {
           autoSync: true,
           searchEndpoint: '/api/search',
+          categorized: true,
         },
         typesense: {
           apiKey: 'xyz',

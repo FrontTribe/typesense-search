@@ -118,7 +118,7 @@ export default function HomePage() {
               gap: '8px',
             }}
           >
-            🔍 Search Test
+            🔍 Search Demo
           </h2>
           <p
             style={{
@@ -127,11 +127,11 @@ export default function HomePage() {
               lineHeight: '1.5',
             }}
           >
-            Test the headless search component with real data. Search through posts and media with
-            live results.
+            Experience the full search functionality with real data. Search across all collections
+            with live results and comprehensive features.
           </p>
           <Link
-            href="/search-test"
+            href="/search-demo"
             style={{
               display: 'inline-block',
               backgroundColor: '#10b981',
@@ -143,7 +143,7 @@ export default function HomePage() {
               transition: 'background-color 0.2s ease',
             }}
           >
-            Test Search
+            Try Search Demo
           </Link>
         </div>
       </div>
@@ -280,8 +280,8 @@ export default buildConfig({
           }}
         >
           Ready to get started? Check out the{' '}
-          <Link href="/search-test" style={{ color: '#60a5fa' }}>
-            Search Test page
+          <Link href="/search-demo" style={{ color: '#60a5fa' }}>
+            Search Demo page
           </Link>{' '}
           to see it in action!
         </p>

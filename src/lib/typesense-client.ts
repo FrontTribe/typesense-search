@@ -3,7 +3,10 @@ import type { TypesenseSearchConfig } from '../index.js'
 
 export const createTypesenseClient = (typesenseConfig: TypesenseSearchConfig['typesense']) => {
   return new Typesense.Client({
-    nodes: typesenseConfig.nodes,
+    nodes: typesenseConfig.nodes.map((node) => ({
+      ...node,
+      port: typeof node.port === 'string' ? parseInt(node.port) : node.port,
+    })),
     apiKey: typesenseConfig.apiKey,
     connectionTimeoutSeconds: typesenseConfig.connectionTimeoutSeconds || 2,
   })

@@ -12,13 +12,13 @@ export const setupHooks = (
 
   if (pluginOptions.collections) {
     for (const [collectionSlug, config] of Object.entries(pluginOptions.collections)) {
-      if (config.enabled) {
+      if (config?.enabled) {
         // After create/update hook
         hooks.afterChange = {
           ...hooks.afterChange,
           [collectionSlug]: [
             ...(hooks.afterChange?.[collectionSlug] || []),
-            async ({ doc, operation, req }) => {
+            async ({ doc, operation, req }: { doc: any; operation: any; req: any }) => {
               await syncDocumentToTypesense(typesenseClient, collectionSlug, doc, operation, config)
             },
           ],
@@ -29,7 +29,7 @@ export const setupHooks = (
           ...hooks.afterDelete,
           [collectionSlug]: [
             ...(hooks.afterDelete?.[collectionSlug] || []),
-            async ({ doc, req }) => {
+            async ({ doc, req }: { doc: any; req: any }) => {
               await deleteDocumentFromTypesense(typesenseClient, collectionSlug, doc.id)
             },
           ],
@@ -46,7 +46,7 @@ const syncDocumentToTypesense = async (
   collectionSlug: string,
   doc: any,
   operation: 'create' | 'update',
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   try {
     const typesenseDoc = mapPayloadDocumentToTypesense(doc, collectionSlug, config)

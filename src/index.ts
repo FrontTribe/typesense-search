@@ -26,12 +26,14 @@ export type TypesenseSearchConfig = {
    */
   collections?: Partial<
     Record<
-      CollectionSlug,
+      string,
       {
         enabled: boolean
         searchFields?: string[]
         facetFields?: string[]
         sortFields?: string[]
+        displayName?: string
+        icon?: string
       }
     >
   >
@@ -43,6 +45,7 @@ export type TypesenseSearchConfig = {
     autoSync?: boolean
     batchSize?: number
     searchEndpoint?: string
+    categorized?: boolean
   }
 
   disabled?: boolean
@@ -80,7 +83,7 @@ export const typesenseSearch =
     // Apply hooks to individual collections
     if (pluginOptions.settings?.autoSync !== false && pluginOptions.collections) {
       config.collections = config.collections?.map((collection) => {
-        const collectionConfig = pluginOptions.collections?.[collection.slug]
+        const collectionConfig = pluginOptions.collections?.[collection.slug as any]
 
         if (collectionConfig?.enabled) {
           return {
@@ -130,7 +133,7 @@ export const typesenseSearch =
 const createCollectionIfNotExists = async (
   typesenseClient: Typesense.Client,
   collectionSlug: string,
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
@@ -143,7 +146,7 @@ const createCollectionIfNotExists = async (
   ]
 
   // Map searchable fields
-  const searchFields = searchableFields.map((field) => ({
+  const searchFields = searchableFields.map((field: string) => ({
     name: field,
     type: 'string' as const,
     facet: facetFields.includes(field),
@@ -151,8 +154,8 @@ const createCollectionIfNotExists = async (
 
   // Map facet-only fields (not in searchable fields)
   const facetOnlyFields = facetFields
-    .filter((field) => !searchableFields.includes(field))
-    .map((field) => ({
+    .filter((field: string) => !searchableFields.includes(field))
+    .map((field: string) => ({
       name: field,
       type: 'string' as const,
       facet: true,
@@ -173,7 +176,7 @@ const syncDocumentToTypesense = async (
   collectionSlug: string,
   doc: any,
   operation: 'create' | 'update',
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   try {
     // First check if the collection exists, create it if it doesn't

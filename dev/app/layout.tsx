@@ -48,14 +48,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               📝 Admin Panel
             </Link>
             <Link
-              href="/search-test"
+              href="/search-demo"
               style={{
                 color: '#f9fafb',
                 textDecoration: 'none',
                 fontSize: '1rem',
               }}
             >
-              🔍 Search Test
+              🔍 Search Demo
             </Link>
             <div style={{ marginLeft: 'auto' }}>
               <span

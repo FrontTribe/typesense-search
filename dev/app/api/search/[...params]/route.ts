@@ -13,12 +13,26 @@ const pluginOptions = {
       enabled: true,
       facetFields: ['type'],
       searchFields: ['filename', 'alt'],
+      displayName: 'Media Files',
+      icon: '🖼️',
     },
     posts: {
       enabled: true,
       facetFields: ['category', 'status'],
       searchFields: ['title', 'content'],
+      displayName: 'Blog Posts',
+      icon: '📝',
     },
+    portfolio: {
+      enabled: true,
+      facetFields: ['status', 'featured'],
+      searchFields: ['title', 'description', 'shortDescription', 'technologies.name', 'tags.tag'],
+      displayName: 'Portfolio',
+      icon: '💼',
+    },
+  },
+  settings: {
+    categorized: true,
   },
 }
 
@@ -26,6 +40,29 @@ export async function GET(request: NextRequest) {
   const { searchParams, pathname } = new URL(request.url)
   const pathSegments = pathname.split('/api/search/')[1]?.split('/') || []
   const collection = pathSegments[0]
+
+  // Handle collections endpoint
+  if (collection === 'collections') {
+    try {
+      const collections = Object.entries(pluginOptions.collections || {})
+        .filter(([_, config]) => config.enabled)
+        .map(([slug, config]) => ({
+          slug,
+          displayName: config.displayName || slug.charAt(0).toUpperCase() + slug.slice(1),
+          icon: config.icon || '📄',
+          searchFields: config.searchFields || [],
+          facetFields: config.facetFields || [],
+        }))
+
+      return NextResponse.json({
+        collections,
+        categorized: pluginOptions.settings?.categorized || false,
+      })
+    } catch (error) {
+      console.error('Collections handler error:', error)
+      return NextResponse.json({ error: 'Failed to get collections' }, { status: 500 })
+    }
+  }
 
   // Debug logging (can be removed in production)
   // console.log('Custom search handler called with:', { collection, searchParams: Object.fromEntries(searchParams) })
@@ -49,21 +86,28 @@ export async function GET(request: NextRequest) {
   try {
     const searchParameters: any = {
       q,
-      query_by: pluginOptions.collections[collection].searchFields?.join(',') || 'title,content',
+      query_by:
+        pluginOptions.collections[
+          collection as keyof typeof pluginOptions.collections
+        ].searchFields?.join(',') || 'title,content',
       page,
       per_page,
       highlight_full_fields:
-        pluginOptions.collections[collection].searchFields?.join(',') || 'title,content',
+        pluginOptions.collections[
+          collection as keyof typeof pluginOptions.collections
+        ].searchFields?.join(',') || 'title,content',
       snippet_threshold: 30,
-      num_typos: 2,
+      num_typos: 0,
       typo_tokens_threshold: 1,
     }
 
     // Add facet filters
-    const facetFields = pluginOptions.collections[collection].facetFields || []
+    const facetFields =
+      pluginOptions.collections[collection as keyof typeof pluginOptions.collections].facetFields ||
+      []
     const filters: string[] = []
 
-    facetFields.forEach((field) => {
+    facetFields.forEach((field: string) => {
       const value = searchParams.get(field)
       if (value) {
         filters.push(`${field}:=${value}`)
@@ -117,21 +161,28 @@ export async function POST(request: NextRequest) {
 
     const searchParameters: any = {
       q,
-      query_by: pluginOptions.collections[collection].searchFields?.join(',') || 'title,content',
+      query_by:
+        pluginOptions.collections[
+          collection as keyof typeof pluginOptions.collections
+        ].searchFields?.join(',') || 'title,content',
       page,
       per_page,
       highlight_full_fields:
-        pluginOptions.collections[collection].searchFields?.join(',') || 'title,content',
+        pluginOptions.collections[
+          collection as keyof typeof pluginOptions.collections
+        ].searchFields?.join(',') || 'title,content',
       snippet_threshold: 30,
-      num_typos: 2,
+      num_typos: 0,
       typo_tokens_threshold: 1,
     }
 
     // Add facet filters
-    const facetFields = pluginOptions.collections[collection].facetFields || []
+    const facetFields =
+      pluginOptions.collections[collection as keyof typeof pluginOptions.collections].facetFields ||
+      []
     const filterArray: string[] = []
 
-    facetFields.forEach((field) => {
+    facetFields.forEach((field: string) => {
       if (filters[field]) {
         filterArray.push(`${field}:=${filters[field]}`)
       }

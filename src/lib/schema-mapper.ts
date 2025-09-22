@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Collection } from 'payload'
 import type { TypesenseSearchConfig } from '../index.js'
 
 // Helper function to extract text content from richText structure
@@ -29,8 +29,9 @@ const extractTextFromRichText = (richText: any): string => {
 }
 
 export const mapCollectionToTypesenseSchema = (
-  collection: CollectionConfig,
-  config: TypesenseSearchConfig['collections'][string],
+  collection: Collection,
+  collectionSlug: string,
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
@@ -43,7 +44,7 @@ export const mapCollectionToTypesenseSchema = (
   ]
 
   // Map searchable fields
-  const searchFields = searchableFields.map((field) => ({
+  const searchFields = searchableFields.map((field: string) => ({
     name: field,
     type: 'string' as const,
     facet: facetFields.includes(field),
@@ -51,15 +52,15 @@ export const mapCollectionToTypesenseSchema = (
 
   // Map facet-only fields (not in searchable fields)
   const facetOnlyFields = facetFields
-    .filter((field) => !searchableFields.includes(field))
-    .map((field) => ({
+    .filter((field: string) => !searchableFields.includes(field))
+    .map((field: string) => ({
       name: field,
       type: 'string' as const,
       facet: true,
     }))
 
   return {
-    name: collection.slug,
+    name: collectionSlug,
     fields: [...baseFields, ...searchFields, ...facetOnlyFields],
   }
 }
@@ -67,7 +68,7 @@ export const mapCollectionToTypesenseSchema = (
 export const mapPayloadDocumentToTypesense = (
   doc: any,
   collectionSlug: string,
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
@@ -95,21 +96,36 @@ export const mapPayloadDocumentToTypesense = (
   }
 
   // Add searchable fields with validation
-  searchableFields.forEach((field) => {
-    if (doc[field] !== undefined && doc[field] !== null) {
+  searchableFields.forEach((field: string) => {
+    // Handle array fields with dot notation (e.g., 'technologies.name', 'tags.tag')
+    if (field.includes('.')) {
+      const [arrayField, subField] = field.split('.', 2)
+      if (Array.isArray(doc[arrayField]) && doc[arrayField].length > 0) {
+        typesenseDoc[field] = doc[arrayField].map((item: any) => item[subField] || '').join(' ')
+      } else {
+        typesenseDoc[field] = ''
+      }
+    } else if (doc[field] !== undefined && doc[field] !== null) {
       // Handle richText fields specially
-      if (field === 'content' && typeof doc[field] === 'object' && doc[field].root) {
+      if (
+        (field === 'content' || field === 'description') &&
+        typeof doc[field] === 'object' &&
+        doc[field].root
+      ) {
         // Extract text from richText structure
         typesenseDoc[field] = extractTextFromRichText(doc[field])
       } else {
         // Convert to string for other fields
         typesenseDoc[field] = String(doc[field])
       }
+    } else {
+      // Set empty string for missing fields
+      typesenseDoc[field] = ''
     }
   })
 
   // Add facet fields with validation - ensure all facet fields are present
-  facetFields.forEach((field) => {
+  facetFields.forEach((field: string) => {
     if (doc[field] !== undefined && doc[field] !== null) {
       // Convert to string for facet fields
       typesenseDoc[field] = String(doc[field])
@@ -121,7 +137,7 @@ export const mapPayloadDocumentToTypesense = (
 
   // Validate that we have at least one searchable field
   const hasSearchableContent = searchableFields.some(
-    (field) => typesenseDoc[field] && typesenseDoc[field].trim().length > 0,
+    (field: string) => typesenseDoc[field] && typesenseDoc[field].trim().length > 0,
   )
 
   if (!hasSearchableContent) {

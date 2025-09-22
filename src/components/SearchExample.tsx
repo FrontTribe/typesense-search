@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import HeadlessSearchInput, { SearchResult, SearchResponse } from './HeadlessSearchInput'
+import HeadlessSearchInput, { SearchResult, SearchResponse } from './HeadlessSearchInput.js'
 import styles from './HeadlessSearchInput.module.css'
 
 // Example usage component

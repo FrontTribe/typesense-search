@@ -131,7 +131,7 @@ export const HeadlessSearchInput: React.FC<HeadlessSearchInputProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Debounced search function
   // Use refs to avoid recreating functions on every render

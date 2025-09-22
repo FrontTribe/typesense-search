@@ -20,7 +20,7 @@ export const initializeTypesenseCollections = async (
 
   if (pluginOptions.collections) {
     for (const [collectionSlug, config] of Object.entries(pluginOptions.collections)) {
-      if (config.enabled) {
+      if (config?.enabled) {
         try {
           await initializeCollection(payload, typesenseClient, collectionSlug, config)
         } catch (error) {
@@ -37,7 +37,7 @@ const initializeCollection = async (
   payload: Payload,
   typesenseClient: Typesense.Client,
   collectionSlug: string,
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   // Get the collection config from Payload
   const collection = payload.collections[collectionSlug]
@@ -47,7 +47,7 @@ const initializeCollection = async (
   }
 
   // Create Typesense schema
-  const schema = mapCollectionToTypesenseSchema(collection, config)
+  const schema = mapCollectionToTypesenseSchema(collection, collectionSlug, config)
   console.log(`🔍 Creating schema for ${collectionSlug}:`, JSON.stringify(schema, null, 2))
 
   try {
@@ -74,7 +74,7 @@ const syncExistingDocuments = async (
   payload: Payload,
   typesenseClient: Typesense.Client,
   collectionSlug: string,
-  config: TypesenseSearchConfig['collections'][string],
+  config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
 ) => {
   try {
     const { docs } = await payload.find({
