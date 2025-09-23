@@ -14,7 +14,7 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    
+
     services:
       mongodb:
         image: mongo:7.0
@@ -22,20 +22,6 @@ jobs:
           - 27017:27017
         options: >-
           --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      typesense:
-        image: typesense/typesense:0.25.2
-        ports:
-          - 8108:8108
-        env:
-          TYPESENSE_DATA_DIR: /data
-          TYPESENSE_API_KEY: xyz
-          TYPESENSE_ENABLE_CORS: 'true'
-        options: >-
-          --health-cmd "curl -f http://localhost:8108/health || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -69,6 +55,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Start Typesense
+        run: |
+          docker run -d --name typesense-test \
+            -p 8108:8108 \
+            -v $(pwd)/typesense-data:/data \
+            typesense/typesense:0.25.2 \
+            --data-dir /data \
+            --api-key xyz \
+            --enable-cors
+          
+          # Wait for Typesense to be ready
+          timeout 30 bash -c 'until curl -f http://localhost:8108/health; do sleep 1; done'
+
       - name: Lint code
         run: pnpm lint
 
@@ -84,6 +83,12 @@ jobs:
 
       - name: Run E2E tests
         run: pnpm test:e2e
+
+      - name: Stop Typesense
+        if: always()
+        run: |
+          docker stop typesense-test || true
+          docker rm typesense-test || true
 
   build:
     name: Build Package
@@ -166,7 +171,7 @@ jobs:
     name: PR Validation
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     services:
       mongodb:
         image: mongo:7.0
@@ -174,20 +179,6 @@ jobs:
           - 27017:27017
         options: >-
           --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      typesense:
-        image: typesense/typesense:0.25.2
-        ports:
-          - 8108:8108
-        env:
-          TYPESENSE_DATA_DIR: /data
-          TYPESENSE_API_KEY: xyz
-          TYPESENSE_ENABLE_CORS: 'true'
-        options: >-
-          --health-cmd "curl -f http://localhost:8108/health || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -207,6 +198,19 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Start Typesense
+        run: |
+          docker run -d --name typesense-test \
+            -p 8108:8108 \
+            -v $(pwd)/typesense-data:/data \
+            typesense/typesense:0.25.2 \
+            --data-dir /data \
+            --api-key xyz \
+            --enable-cors
+          
+          # Wait for Typesense to be ready
+          timeout 30 bash -c 'until curl -f http://localhost:8108/health; do sleep 1; done'
 
       - name: Lint code
         run: pnpm lint
@@ -273,6 +277,12 @@ jobs:
               
               The automated release system will create a major version bump for this PR.`
             })
+
+      - name: Stop Typesense
+        if: always()
+        run: |
+          docker stop typesense-test || true
+          docker rm typesense-test || true
 
   security:
     name: Security Audit
