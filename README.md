@@ -15,6 +15,63 @@ A powerful, production-ready search plugin that integrates Typesense with Payloa
 - **🔌 Plug & Play**: Zero-configuration setup - just add to your Payload config
 - **📊 Rich Metadata**: Collection icons, display names, and categorization
 
+## 🎬 Demo
+
+> **Live Demo**: [Try the search functionality](https://github.com/fronttribe/typesense-search#quick-start)
+
+### ✨ What You Get
+
+- **Universal Search**: Search across all your content types simultaneously
+- **Real-time Results**: Instant search with typo tolerance
+- **Rich UI**: Beautiful, responsive search interface
+- **Easy Integration**: Just add to your Payload config
+
+### 🚀 Quick Start
+
+```typescript
+// 1. Install the plugin
+pnpm add typesense-search-plugin
+
+// 2. Add to your Payload config
+import { typesenseSearch } from 'typesense-search-plugin'
+
+export default buildConfig({
+  plugins: [
+    typesenseSearch({
+      typesense: {
+        apiKey: 'xyz',
+        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
+      },
+      collections: {
+        posts: {
+          enabled: true,
+          searchFields: ['title', 'content'],
+          facetFields: ['category', 'status'],
+          displayName: 'Blog Posts',
+          icon: '📝',
+        },
+      },
+    }),
+  ],
+})
+
+// 3. Use the search component
+import { UnifiedSearchInput } from 'typesense-search-plugin'
+
+function SearchPage() {
+  return (
+    <UnifiedSearchInput
+      baseUrl="http://localhost:3000"
+      placeholder="Search everything..."
+      onResultClick={(result) => {
+        // Handle result selection
+        console.log('Selected:', result.document)
+      }}
+    />
+  )
+}
+```
+
 ## 📦 Installation
 
 ```bash
@@ -42,6 +99,7 @@ docker-compose ps
 ```
 
 This will start:
+
 - **MongoDB** on port `27017` (for Payload CMS data)
 - **Typesense** on port `8108` (for search functionality)
 

@@ -1,0 +1,187 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      typesense:
+        image: typesense/typesense:0.25.2
+        ports:
+          - 8108:8108
+        env:
+          TYPESENSE_DATA_DIR: /data
+          TYPESENSE_API_KEY: xyz
+          TYPESENSE_ENABLE_CORS: 'true'
+        options: >-
+          --health-cmd "curl -f http://localhost:8108/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+          cache: 'npm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.14.0'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test:unit
+
+      - name: Run integration tests
+        run: pnpm test:int
+        env:
+          MONGODB_URI: mongodb://localhost:27017/payload-test
+          TYPESENSE_API_KEY: xyz
+          TYPESENSE_NODES: '[{"host":"localhost","port":"8108","protocol":"http"}]'
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Check for breaking changes
+        id: breaking-changes
+        run: |
+          # Check if PR title or body contains breaking change indicators
+          if echo "${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}" | grep -iE "(breaking|major|!feat|!fix)"; then
+            echo "has-breaking-changes=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Breaking changes detected in this PR"
+          else
+            echo "has-breaking-changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate commit messages
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          disallowScopes: |
+            release
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request "{title}"
+            didn't match the configured pattern. Please ensure that the
+            subject doesn't start with an uppercase character.
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        if: steps.breaking-changes.outputs.has-breaking-changes == 'true'
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `⚠️ **Breaking Changes Detected**
+              
+              This PR appears to contain breaking changes. Please ensure:
+              
+              - [ ] Breaking changes are documented in the PR description
+              - [ ] Version bump will be appropriate (major version)
+              - [ ] Migration guide is provided if needed
+              - [ ] All tests pass
+              
+              The automated release system will create a major version bump for this PR.`
+            })
+
+  pr-preview:
+    name: PR Preview
+    runs-on: ubuntu-latest
+    needs: pr-validation
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.14.0'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Generate preview changelog
+        id: preview-changelog
+        run: |
+          # Generate a preview of what the changelog would look like
+          echo "## Preview Changelog" > changelog-preview.md
+          echo "" >> changelog-preview.md
+          echo "### Changes in this PR:" >> changelog-preview.md
+          echo "" >> changelog-preview.md
+
+          # Get commit messages from this PR
+          git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} >> changelog-preview.md
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat changelog-preview.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment preview
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changelog = `${{ steps.preview-changelog.outputs.changelog }}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📋 **Release Preview**
+              
+              ${changelog}
+              
+              This preview shows what will be included in the next release when this PR is merged.`
+            })

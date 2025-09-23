@@ -1,0 +1,131 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: '[BUG] '
+labels: ['bug', 'triage']
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: dropdown
+    id: bug-type
+    attributes:
+      label: Bug Type
+      description: What type of bug is this?
+      options:
+        - Search functionality
+        - API endpoints
+        - React components
+        - Configuration
+        - Performance
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: A clear and concise description of what actually happened.
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please provide your environment details.
+      placeholder: |
+        - OS: [e.g. macOS, Windows, Linux]
+        - Node.js version: [e.g. 22.19.0]
+        - Payload CMS version: [e.g. 3.37.0]
+        - Typesense version: [e.g. 0.25.2]
+        - Plugin version: [e.g. 1.0.7]
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Share your plugin configuration (remove sensitive data).
+      render: typescript
+      placeholder: |
+        ```typescript
+        typesenseSearch({
+          typesense: {
+            apiKey: 'your-api-key',
+            nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
+          },
+          collections: {
+            // your collections config
+          },
+        })
+        ```
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: If applicable, add error logs or stack traces.
+      render: shell
+      placeholder: |
+        ```
+        Error: ...
+        at ...
+        ```
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following.
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have provided all the requested information
+          required: true
+        - label: I am using the latest version of the plugin
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Additional Context
+        Add any other context about the problem here.

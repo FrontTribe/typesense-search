@@ -1,0 +1,78 @@
+name: ❓ Question
+description: Ask a question about the plugin
+title: '[QUESTION] '
+labels: ['question', 'triage']
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! We're here to help.
+
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: Question Type
+      description: What type of question do you have?
+      options:
+        - How to use
+        - Configuration help
+        - Troubleshooting
+        - Best practices
+        - Integration help
+        - Performance
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context about your question.
+      placeholder: |
+        - What are you trying to achieve?
+        - What have you tried so far?
+        - Any relevant code or configuration?
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please provide your environment details.
+      placeholder: |
+        - OS: [e.g. macOS, Windows, Linux]
+        - Node.js version: [e.g. 22.19.0]
+        - Payload CMS version: [e.g. 3.37.0]
+        - Typesense version: [e.g. 0.25.2]
+        - Plugin version: [e.g. 1.0.7]
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following.
+      options:
+        - label: I have searched existing issues and documentation
+          required: true
+        - label: I have provided clear context about my question
+          required: true
+        - label: I have provided my environment details
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Additional Information
+        Add any other information that might be helpful.
