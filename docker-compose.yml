@@ -1,4 +1,12 @@
 services:
+  mongodb:
+    image: mongo:7.0
+    restart: on-failure
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+
   typesense:
     image: typesense/typesense:29.0
     restart: on-failure
@@ -7,3 +15,6 @@ services:
     volumes:
       - ./typesense-data:/data
     command: '--data-dir /data --api-key=xyz --enable-cors'
+
+volumes:
+  mongodb_data:

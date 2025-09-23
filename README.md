@@ -27,23 +27,45 @@ pnpm add typesense-search-plugin
 
 ## 🏗️ Setup
 
-### 1. Install Typesense
+### 1. Install Typesense and MongoDB
+
+#### Option A: Using Docker Compose (Recommended)
+
+The project includes a `docker-compose.yml` file that sets up both Typesense and MongoDB:
 
 ```bash
-# Using Docker (recommended)
-docker run -p 8108:8108 -v/tmp/typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
+# Start both Typesense and MongoDB
+docker-compose up -d
 
-# Or install locally
+# Check status
+docker-compose ps
+```
+
+This will start:
+- **MongoDB** on port `27017` (for Payload CMS data)
+- **Typesense** on port `8108` (for search functionality)
+
+#### Option B: Manual Docker Setup
+
+```bash
+# Start MongoDB
+docker run -d --name mongodb -p 27017:27017 mongo:7.0
+
+# Start Typesense
+docker run -p 8108:8108 -v/tmp/typesense-data:/data typesense/typesense:0.25.2 --data-dir /data --api-key=xyz --enable-cors
+```
+
+#### Option C: Local Installation
+
+```bash
+# Install Typesense locally
 # See: https://typesense.org/docs/guide/install-typesense.html
+
+# Install MongoDB locally
+# See: https://docs.mongodb.com/manual/installation/
 ```
 
 **Note:** The `typesense-data` folder is created automatically by Typesense when it runs and is already included in `.gitignore`. You don't need to create it manually.
-
-**Alternative:** If you prefer using docker-compose, you can use the included `docker-compose.yml` file:
-
-```bash
-docker-compose up -d
-```
 
 ### 2. Configure Payload CMS
 

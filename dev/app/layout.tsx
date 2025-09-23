@@ -27,17 +27,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           >
             <Link
-              href="/"
-              style={{
-                color: '#f9fafb',
-                textDecoration: 'none',
-                fontSize: '1.25rem',
-                fontWeight: '600',
-              }}
-            >
-              🏠 Home
-            </Link>
-            <Link
               href="/admin"
               style={{
                 color: '#f9fafb',

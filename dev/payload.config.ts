@@ -234,7 +234,7 @@ const buildConfigWithMemoryDB = async () => {
     ],
     db: mongooseAdapter({
       ensureIndexes: true,
-      url: process.env.DATABASE_URI || '',
+      url: process.env.DATABASE_URI || 'mongodb://localhost:27017/payload',
     }),
     editor: lexicalEditor(),
     email: testEmailAdapter,
