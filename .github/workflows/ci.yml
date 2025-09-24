@@ -142,7 +142,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -163,8 +162,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Configure NPM Registry
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Build package
         run: pnpm build
+
+      - name: Debug NPM Token
+        run: |
+          echo "NPM_TOKEN length: ${#NPM_TOKEN}"
+          echo "NPM_TOKEN starts with npm_: $(echo $NPM_TOKEN | grep -q '^npm_' && echo 'YES' || echo 'NO')"
+          echo "Testing NPM authentication..."
+          npm whoami --registry https://registry.npmjs.org/ || echo "NPM authentication failed"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Semantic Release
         id: semantic-release
