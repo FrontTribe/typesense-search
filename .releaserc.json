@@ -44,8 +44,12 @@
         "addReleases": "bottom",
         "assets": [
           {
-            "path": "dist/**/*",
-            "label": "Source code (zip)"
+            "path": "dist/index.js",
+            "label": "Main bundle (index.js)"
+          },
+          {
+            "path": "dist/index.d.ts",
+            "label": "TypeScript definitions (index.d.ts)"
           }
         ]
       }
