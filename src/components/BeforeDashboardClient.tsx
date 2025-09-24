@@ -1,13 +1,13 @@
 'use client'
 import { useConfig } from '@payloadcms/ui'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 interface SearchResult {
-  hits: Array<{
-    document: any
-    highlight: any
-  }>
   found: number
+  hits: Array<{
+    document: Record<string, unknown>
+    highlight: Record<string, unknown>
+  }>
   page: number
   search_time_ms: number
 }
@@ -15,7 +15,7 @@ interface SearchResult {
 export const BeforeDashboardClient = () => {
   const { config } = useConfig()
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
+  const [searchResults, setSearchResults] = useState<null | SearchResult>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [selectedCollection, setSelectedCollection] = useState('posts')
 
@@ -40,8 +40,8 @@ export const BeforeDashboardClient = () => {
       // Ensure results have the expected structure
       if (results && typeof results === 'object') {
         setSearchResults({
-          hits: results.hits || [],
           found: results.found || 0,
+          hits: results.hits || [],
           page: results.page || 1,
           search_time_ms: results.search_time_ms || 0,
         })
@@ -49,7 +49,6 @@ export const BeforeDashboardClient = () => {
         setSearchResults(null)
       }
     } catch (error) {
-      console.error('Search failed:', error)
       setSearchResults(null)
     } finally {
       setIsSearching(false)
@@ -58,55 +57,61 @@ export const BeforeDashboardClient = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    performSearch(searchQuery)
+    void performSearch(searchQuery)
   }
 
   return (
     <div
       style={{
-        padding: '20px',
         border: '1px solid #e0e0e0',
         borderRadius: '8px',
         margin: '20px 0',
+        padding: '20px',
       }}
     >
-      <h2>🔍 Typesense Search</h2>
+      <h2>
+        <span aria-label="search" role="img">
+          🔍
+        </span>{' '}
+        Typesense Search
+      </h2>
 
       <form onSubmit={handleSearch} style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
           <select
-            value={selectedCollection}
+            aria-label="Select collection to search"
             onChange={(e) => setSelectedCollection(e.target.value)}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '8px' }}
+            value={selectedCollection}
           >
             <option value="posts">Posts</option>
             <option value="media">Media</option>
           </select>
 
           <input
-            type="text"
-            value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search..."
             style={{
+              border: '1px solid #ccc',
+              borderRadius: '4px',
               flex: 1,
               padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
             }}
+            type="text"
+            value={searchQuery}
           />
 
           <button
-            type="submit"
             disabled={isSearching}
             style={{
-              padding: '8px 16px',
               backgroundColor: '#0070f3',
-              color: 'white',
               border: 'none',
               borderRadius: '4px',
+              color: 'white',
               cursor: isSearching ? 'not-allowed' : 'pointer',
+              padding: '8px 16px',
             }}
+            type="submit"
           >
             {isSearching ? 'Searching...' : 'Search'}
           </button>
@@ -125,10 +130,10 @@ export const BeforeDashboardClient = () => {
                 <div
                   key={index}
                   style={{
-                    padding: '10px',
+                    backgroundColor: '#f9f9f9',
                     border: '1px solid #e0e0e0',
                     borderRadius: '4px',
-                    backgroundColor: '#f9f9f9',
+                    padding: '10px',
                   }}
                 >
                   <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
@@ -138,13 +143,13 @@ export const BeforeDashboardClient = () => {
                   </div>
                   {hit.highlight && (
                     <div
-                      style={{ fontSize: '14px', color: '#666' }}
                       dangerouslySetInnerHTML={{
                         __html: Object.values(hit.highlight).join(' ... '),
                       }}
+                      style={{ color: '#666', fontSize: '14px' }}
                     />
                   )}
-                  <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
+                  <div style={{ color: '#999', fontSize: '12px', marginTop: '5px' }}>
                     ID: {hit.document?.id || 'Unknown'} | Updated:{' '}
                     {hit.document?.updatedAt
                       ? new Date(hit.document.updatedAt).toLocaleDateString()

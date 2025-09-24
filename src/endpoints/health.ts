@@ -3,10 +3,12 @@
  */
 
 import type { PayloadHandler } from 'payload'
-import Typesense from 'typesense'
+import type Typesense from 'typesense'
+
 import type { TypesenseSearchConfig } from '../index.js'
-import { searchCache } from '../lib/cache.js'
 import type { HealthCheckResponse } from '../lib/types.js'
+
+import { searchCache } from '../lib/cache.js'
 
 /**
  * Test Typesense connection
@@ -16,7 +18,7 @@ const testTypesenseConnection = async (typesenseClient: Typesense.Client): Promi
     const health = await typesenseClient.health.retrieve()
     return health.ok === true
   } catch (error) {
-    console.error('Typesense health check failed:', error)
+    // Handle health check error
     return false
   }
 }
@@ -27,9 +29,9 @@ const testTypesenseConnection = async (typesenseClient: Typesense.Client): Promi
 const getCollectionInfo = async (typesenseClient: Typesense.Client): Promise<string[]> => {
   try {
     const collections = await typesenseClient.collections().retrieve()
-    return collections.map(col => col.name)
+    return collections.map((col) => col.name)
   } catch (error) {
-    console.error('Failed to retrieve collections:', error)
+    // Handle collections retrieval error
     return []
   }
 }
@@ -40,9 +42,9 @@ const getCollectionInfo = async (typesenseClient: Typesense.Client): Promise<str
 const getCacheStats = () => {
   const stats = searchCache.getStats()
   return {
-    size: stats.size,
+    hitRate: stats.hitRate || 0,
     maxSize: stats.maxSize,
-    hitRate: stats.hitRate || 0
+    size: stats.size,
   }
 }
 
@@ -52,35 +54,35 @@ const getCacheStats = () => {
 export const createHealthCheckHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
-  lastSyncTime?: number
+  lastSyncTime?: number,
 ): PayloadHandler => {
   return async (): Promise<Response> => {
     try {
       const startTime = Date.now()
-      
+
       // Test Typesense connection
       const isTypesenseHealthy = await testTypesenseConnection(typesenseClient)
-      const typesenseInfo = isTypesenseHealthy 
+      const typesenseInfo = isTypesenseHealthy
         ? { ok: true, version: 'unknown' } // Typesense doesn't expose version in health check
         : { ok: false }
-      
+
       // Get collection information
       const collections = isTypesenseHealthy ? await getCollectionInfo(typesenseClient) : []
-      
+
       // Get cache statistics
       const cacheStats = getCacheStats()
-      
+
       // Determine overall health status
       const isHealthy = isTypesenseHealthy && collections.length > 0
-      
+
       const response: HealthCheckResponse = {
-        status: isHealthy ? 'healthy' : 'unhealthy',
-        typesense: typesenseInfo,
+        cache: cacheStats,
         collections,
         lastSync: lastSyncTime,
-        cache: cacheStats
+        status: isHealthy ? 'healthy' : 'unhealthy',
+        typesense: typesenseInfo,
       }
-      
+
       // Add error details if unhealthy
       if (!isHealthy) {
         const errors = []
@@ -92,24 +94,24 @@ export const createHealthCheckHandler = (
         }
         response.error = errors.join(', ')
       }
-      
+
       const responseTime = Date.now() - startTime
-      
+
       return Response.json({
         ...response,
         responseTime,
         timestamp: new Date().toISOString(),
-        version: '1.0.6' // Plugin version
+        version: '1.0.6', // Plugin version
       })
     } catch (error) {
-      console.error('Health check failed:', error)
-      
+      // Handle health check error
+
       const errorResponse: HealthCheckResponse = {
-        status: 'unhealthy',
+        cache: getCacheStats(),
         error: error instanceof Error ? error.message : 'Unknown error',
-        cache: getCacheStats()
+        status: 'unhealthy',
       }
-      
+
       return Response.json(errorResponse, { status: 500 })
     }
   }
@@ -121,34 +123,34 @@ export const createHealthCheckHandler = (
 export const createDetailedHealthCheckHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
-  lastSyncTime?: number
+  lastSyncTime?: number,
 ): PayloadHandler => {
   return async (): Promise<Response> => {
     try {
       const startTime = Date.now()
-      
+
       // Test Typesense connection
       const isTypesenseHealthy = await testTypesenseConnection(typesenseClient)
-      
+
       // Get detailed collection information
       let collections: any[] = []
       if (isTypesenseHealthy) {
         try {
           const collectionsData = await typesenseClient.collections().retrieve()
-          collections = collectionsData.map(col => ({
+          collections = collectionsData.map((col) => ({
             name: col.name,
-            numDocuments: col.num_documents,
+            createdAt: col.created_at,
             fields: col.fields?.length || 0,
-            createdAt: col.created_at
+            numDocuments: col.num_documents,
           }))
         } catch (error) {
-          console.error('Failed to get detailed collection info:', error)
+          // Handle detailed collection info error
         }
       }
-      
+
       // Get cache statistics
       const cacheStats = getCacheStats()
-      
+
       // Get plugin configuration info
       const configInfo = {
         enabledCollections: Object.entries(pluginOptions.collections || {})
@@ -156,32 +158,32 @@ export const createDetailedHealthCheckHandler = (
           .map(([name, config]) => ({
             name,
             displayName: config?.displayName,
+            facetFields: config?.facetFields || [],
             searchFields: config?.searchFields || [],
-            facetFields: config?.facetFields || []
           })),
+        settings: pluginOptions.settings,
         totalCollections: Object.keys(pluginOptions.collections || {}).length,
-        settings: pluginOptions.settings
       }
-      
+
       // Determine overall health status
       const isHealthy = isTypesenseHealthy && collections.length > 0
-      
+
       const response: any = {
-        status: isHealthy ? 'healthy' : 'unhealthy',
-        typesense: {
-          ok: isTypesenseHealthy,
-          version: 'unknown'
-        },
-        collections: collections.map(col => col.name),
+        cache: cacheStats,
         collectionDetails: collections,
+        collections: collections.map((col) => col.name),
         config: configInfo,
         lastSync: lastSyncTime,
-        cache: cacheStats,
         responseTime: Date.now() - startTime,
+        status: isHealthy ? 'healthy' : 'unhealthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.6'
+        typesense: {
+          ok: isTypesenseHealthy,
+          version: 'unknown',
+        },
+        version: '1.0.6',
       }
-      
+
       // Add error details if unhealthy
       if (!isHealthy) {
         const errors = []
@@ -193,19 +195,19 @@ export const createDetailedHealthCheckHandler = (
         }
         response.error = errors.join(', ')
       }
-      
+
       return Response.json(response)
     } catch (error) {
-      console.error('Detailed health check failed:', error)
-      
+      // Handle detailed health check error
+
       const errorResponse = {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error',
         cache: getCacheStats(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.6'
+        version: '1.0.6',
       }
-      
+
       return Response.json(errorResponse, { status: 500 })
     }
   }

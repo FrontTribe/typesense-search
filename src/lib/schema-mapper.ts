@@ -1,4 +1,5 @@
-import type { CollectionConfig, Collection } from 'payload'
+import type { Collection, CollectionConfig } from 'payload'
+
 import type { TypesenseSearchConfig } from '../index.js'
 
 // Helper function to extract text content from richText structure
@@ -36,9 +37,7 @@ export const mapCollectionToTypesenseSchema = (
   const searchableFields = config?.searchFields || ['title', 'content', 'description']
   const facetFields = config?.facetFields || []
 
-  console.log(`🔍 Schema mapper - Collection: ${collectionSlug}`)
-  console.log(`🔍 Schema mapper - Search fields:`, searchableFields)
-  console.log(`🔍 Schema mapper - Facet fields:`, facetFields)
+  // Map schema for collection
 
   // Base fields that every collection should have
   const baseFields = [
@@ -55,7 +54,7 @@ export const mapCollectionToTypesenseSchema = (
     facet: facetFields.includes(field),
   }))
 
-  console.log(`🔍 Schema mapper - Mapped search fields:`, searchFields)
+  // Process search fields
 
   // Map facet-only fields (not in searchable fields)
   const facetOnlyFields = facetFields
@@ -71,7 +70,7 @@ export const mapCollectionToTypesenseSchema = (
     fields: [...baseFields, ...searchFields, ...facetOnlyFields],
   }
 
-  console.log(`🔍 Schema mapper - Final schema:`, JSON.stringify(finalSchema, null, 2))
+  // Return final schema
 
   return finalSchema
 }
@@ -90,12 +89,12 @@ export const mapPayloadDocumentToTypesense = (
   }
 
   if (!doc.createdAt) {
-    console.warn(`Document ${doc.id} missing 'createdAt' field, using current time`)
+    // Use current time for missing createdAt
     doc.createdAt = new Date()
   }
 
   if (!doc.updatedAt) {
-    console.warn(`Document ${doc.id} missing 'updatedAt' field, using current time`)
+    // Use current time for missing updatedAt
     doc.updatedAt = new Date()
   }
 
@@ -153,7 +152,7 @@ export const mapPayloadDocumentToTypesense = (
   )
 
   if (!hasSearchableContent) {
-    console.warn(`Document ${doc.id} has no searchable content, adding placeholder`)
+    // Add placeholder for missing content
     typesenseDoc.title = typesenseDoc.title || `Document ${doc.id}`
   }
 

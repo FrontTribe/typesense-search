@@ -2,31 +2,31 @@ import '@testing-library/jest-dom'
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
-  writable: true,
   value: vi.fn().mockImplementation((query) => ({
+    addEventListener: vi.fn(),
+    addListener: vi.fn(), // deprecated
+    dispatchEvent: vi.fn(),
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    removeListener: vi.fn(), // deprecated
   })),
+  writable: true,
 })
 
 // Mock IntersectionObserver
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  disconnect: vi.fn(),
   observe: vi.fn(),
   unobserve: vi.fn(),
-  disconnect: vi.fn(),
 }))
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  disconnect: vi.fn(),
   observe: vi.fn(),
   unobserve: vi.fn(),
-  disconnect: vi.fn(),
 }))
 
 // Mock fetch globally
@@ -35,9 +35,9 @@ global.fetch = vi.fn()
 // Mock console methods to reduce noise in tests
 global.console = {
   ...console,
-  log: vi.fn(),
   debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
   error: vi.fn(),
+  info: vi.fn(),
+  log: vi.fn(),
+  warn: vi.fn(),
 }

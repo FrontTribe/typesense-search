@@ -4,18 +4,22 @@
 
 // Base document interface that all collections should extend
 export interface BaseDocument {
+  _status?: 'draft' | 'published'
+  createdAt: Date | string
   id: string
   slug?: string
-  createdAt: string | Date
-  updatedAt: string | Date
-  _status?: 'draft' | 'published'
+  updatedAt: Date | string
 }
 
 // Generic search result interface
 export interface SearchResult<T = any> {
-  id: string
+  collection?: string
+  content?: string
+  displayName?: string
   document: T
   highlight?: Record<string, string>
+  icon?: string
+  id: string
   text_match?: number
   text_match_info?: {
     best_field_score: string
@@ -24,45 +28,41 @@ export interface SearchResult<T = any> {
     score: string
     tokens_matched: number
   }
-  collection?: string
-  displayName?: string
-  icon?: string
   // Additional fields for display
   title?: string
-  content?: string
   updatedAt?: string
 }
 
 // Generic search response interface
 export interface SearchResponse<T = any> {
+  collections?: Array<{
+    collection: string
+    displayName: string
+    error?: string
+    found: number
+    icon: string
+  }>
   found: number
   hits: SearchResult<T>[]
   page: number
   request_params: {
-    q: string
-    per_page: number
     page?: number
+    per_page: number
+    q: string
     sort_by?: string
   }
   search_cutoff: boolean
   search_time_ms: number
-  collections?: Array<{
-    collection: string
-    displayName: string
-    icon: string
-    found: number
-    error?: string
-  }>
 }
 
 // Generic suggest result interface
 export interface SuggestResult<T = any> {
-  document: T
-  highlight?: Record<string, string>
-  text_match?: number
   collection?: string
   displayName?: string
+  document: T
+  highlight?: Record<string, string>
   icon?: string
+  text_match?: number
 }
 
 // Generic suggest response interface
@@ -71,8 +71,8 @@ export interface SuggestResponse<T = any> {
   hits: SuggestResult<T>[]
   page: number
   request_params: {
-    q: string
     per_page: number
+    q: string
   }
   search_cutoff: boolean
   search_time_ms: number
@@ -80,74 +80,74 @@ export interface SuggestResponse<T = any> {
 
 // Generic collection configuration
 export interface CollectionConfig<T = any> {
-  enabled?: boolean
   displayName?: string
-  icon?: string
-  searchFields?: Array<keyof T | string>
+  enabled?: boolean
   facetFields?: Array<keyof T | string>
   // Custom field mapping for complex nested structures
   fieldMapping?: Record<string, string>
+  icon?: string
+  searchFields?: Array<keyof T | string>
 }
 
 // Generic plugin configuration
 export interface TypesenseSearchConfig<T = Record<string, any>> {
+  collections: Record<string, CollectionConfig<T>>
+  settings?: {
+    cache?: {
+      maxSize?: number
+      ttl?: number
+    }
+    categorized?: boolean
+  }
   typesense: {
+    apiKey: string
+    connectionTimeoutSeconds?: number
     nodes: Array<{
       host: string
       port: number
       protocol: 'http' | 'https'
     }>
-    apiKey: string
-    connectionTimeoutSeconds?: number
     numRetries?: number
     retryIntervalSeconds?: number
-  }
-  collections: Record<string, CollectionConfig<T>>
-  settings?: {
-    categorized?: boolean
-    cache?: {
-      ttl?: number
-      maxSize?: number
-    }
   }
 }
 
 // Generic search parameters
 export interface SearchParams {
-  q: string
+  facets?: string[]
+  filters?: Record<string, any>
+  highlight_fields?: string[]
+  num_typos?: number
   page?: number
   per_page?: number
-  sort_by?: string
-  filters?: Record<string, any>
-  facets?: string[]
-  highlight_fields?: string[]
+  q: string
   snippet_threshold?: number
-  num_typos?: number
+  sort_by?: string
   typo_tokens_threshold?: number
 }
 
 // Generic component props for search inputs
 export interface BaseSearchInputProps<T = any> {
   baseUrl: string
-  collection?: string
-  placeholder?: string
-  debounceMs?: number
-  minQueryLength?: number
-  maxResults?: number
-  onResultClick?: (result: SearchResult<T>) => void
-  onSearch?: (query: string, results: SearchResponse<T>) => void
-  onError?: (error: string) => void
-  onLoading?: (loading: boolean) => void
-  onResults?: (results: SearchResponse<T>) => void
   className?: string
+  collection?: string
+  debounceMs?: number
+  errorClassName?: string
   // Styling props
   inputClassName?: string
   inputWrapperClassName?: string
-  resultsListClassName?: string
-  resultsHeaderClassName?: string
   loadingClassName?: string
-  errorClassName?: string
+  maxResults?: number
+  minQueryLength?: number
   noResultsClassName?: string
+  onError?: (error: string) => void
+  onLoading?: (loading: boolean) => void
+  onResultClick?: (result: SearchResult<T>) => void
+  onResults?: (results: SearchResponse<T>) => void
+  onSearch?: (query: string, results: SearchResponse<T>) => void
+  placeholder?: string
+  resultsHeaderClassName?: string
+  resultsListClassName?: string
 }
 
 // Generic cache entry
@@ -159,42 +159,42 @@ export interface CacheEntry<T = any> {
 
 // Generic cache options
 export interface CacheOptions {
-  ttl?: number
   maxSize?: number
+  ttl?: number
 }
 
 // Generic health check response
 export interface HealthCheckResponse {
+  cache?: {
+    maxSize: number
+    size: number
+  }
+  collections?: string[]
+  error?: string
+  lastSync?: number
   status: 'healthy' | 'unhealthy'
   typesense?: {
     ok: boolean
     version?: string
   }
-  collections?: string[]
-  lastSync?: number
-  cache?: {
-    size: number
-    maxSize: number
-  }
-  error?: string
 }
 
 // Generic error response
 export interface ErrorResponse {
-  error: string
-  details?: string
   code?: string
+  details?: string
+  error: string
   timestamp?: string
 }
 
 // Generic API response wrapper
 export interface ApiResponse<T = any> {
-  success: boolean
   data?: T
   error?: ErrorResponse
   meta?: {
-    timestamp: string
-    requestId?: string
     cached?: boolean
+    requestId?: string
+    timestamp: string
   }
+  success: boolean
 }

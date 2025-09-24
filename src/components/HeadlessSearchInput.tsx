@@ -1,112 +1,113 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import type { SearchResult, SearchResponse, BaseSearchInputProps } from '../lib/types.js'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-export interface HeadlessSearchInputProps<T = any> extends BaseSearchInputProps<T> {
+import type { BaseSearchInputProps, SearchResponse, SearchResult } from '../lib/types.js'
+
+export interface HeadlessSearchInputProps<T = Record<string, unknown>> extends BaseSearchInputProps<T> {
   /**
    * Collection to search in
    */
   collection: string
   /**
-   * Number of results to show per page
-   */
-  perPage?: number
-  /**
-   * Custom CSS class for the results container
-   */
-  resultsClassName?: string
-  /**
-   * Custom CSS class for individual result items
-   */
-  resultItemClassName?: string
-  /**
-   * Show loading state
-   */
-  showLoading?: boolean
-  /**
-   * Show search time
-   */
-  showSearchTime?: boolean
-  /**
-   * Show result count
-   */
-  showResultCount?: boolean
-  /**
    * Enable suggestions
    */
   enableSuggestions?: boolean
   /**
-   * Custom render function for results
+   * Number of results to show per page
    */
-  renderResult?: (result: SearchResult<T>, index: number) => React.ReactNode
-  /**
-   * Custom render function for no results
-   */
-  renderNoResults?: (query: string) => React.ReactNode
-  /**
-   * Custom render function for loading state
-   */
-  renderLoading?: () => React.ReactNode
+  perPage?: number
   /**
    * Custom render function for error state
    */
   renderError?: (error: string) => React.ReactNode
   /**
+   * Custom input element (for complete control)
+   */
+  renderInput?: (props: {
+    className: string
+    onBlur: (e: React.FocusEvent) => void
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    onFocus: () => void
+    onKeyDown: (e: React.KeyboardEvent) => void
+    placeholder: string
+    ref: React.RefObject<HTMLInputElement | null>
+    value: string
+  }) => React.ReactNode
+  /**
+   * Custom render function for loading state
+   */
+  renderLoading?: () => React.ReactNode
+  /**
+   * Custom render function for no results
+   */
+  renderNoResults?: (query: string) => React.ReactNode
+  /**
+   * Custom render function for results
+   */
+  renderResult?: (result: SearchResult<T>, index: number) => React.ReactNode
+  /**
    * Custom render function for results header
    */
   renderResultsHeader?: (found: number, searchTime: number) => React.ReactNode
   /**
-   * Custom input element (for complete control)
+   * Custom CSS class for individual result items
    */
-  renderInput?: (props: {
-    value: string
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-    onFocus: () => void
-    onBlur: (e: React.FocusEvent) => void
-    onKeyDown: (e: React.KeyboardEvent) => void
-    placeholder: string
-    className: string
-    ref: React.RefObject<HTMLInputElement | null>
-  }) => React.ReactNode
+  resultItemClassName?: string
+  /**
+   * Custom CSS class for the results container
+   */
+  resultsClassName?: string
+  /**
+   * Show loading state
+   */
+  showLoading?: boolean
+  /**
+   * Show result count
+   */
+  showResultCount?: boolean
+  /**
+   * Show search time
+   */
+  showSearchTime?: boolean
 }
 
-const HeadlessSearchInput = <T = any>({
+const HeadlessSearchInput = <T = Record<string, unknown>>({
   baseUrl,
-  collection,
-  perPage = 10,
-  debounceMs = 300,
-  placeholder = 'Search...',
   className = '',
-  inputClassName = '',
-  resultsClassName = '',
-  resultItemClassName = '',
-  inputWrapperClassName = '',
-  resultsListClassName = '',
-  resultsHeaderClassName = '',
-  loadingClassName = '',
+  collection,
+  debounceMs = 300,
+  enableSuggestions: _enableSuggestions = true,
   errorClassName = '',
+  inputClassName = '',
+  inputWrapperClassName = '',
+  loadingClassName = '',
+  minQueryLength = 2,
   noResultsClassName = '',
+  onResultClick,
   onResults,
   onSearch,
-  onResultClick,
-  showLoading = true,
-  showSearchTime = true,
-  showResultCount = true,
-  minQueryLength = 2,
-  enableSuggestions = true,
-  renderResult,
-  renderNoResults,
-  renderLoading,
+  perPage = 10,
+  placeholder = 'Search...',
   renderError,
-  renderResultsHeader,
   renderInput,
+  renderLoading,
+  renderNoResults,
+  renderResult,
+  renderResultsHeader,
+  resultItemClassName = '',
+  resultsClassName = '',
+  resultsHeaderClassName = '',
+  resultsListClassName = '',
+  showLoading = true,
+  showResultCount = true,
+  showSearchTime = true,
 }: HeadlessSearchInputProps<T>): React.ReactElement => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResponse<T> | null>(null)
+  const [results, setResults] = useState<null | SearchResponse<T>>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<null | string>(null)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -160,8 +161,8 @@ const HeadlessSearchInput = <T = any>({
 
     if (query.length >= minQueryLength) {
       debounceRef.current = setTimeout(() => {
-        performSearch(query)
-        onSearchRef.current?.(query, results || { found: 0, hits: [], page: 1, search_time_ms: 0, request_params: { q: query, per_page: 10 }, search_cutoff: false })
+        void performSearch(query)
+        void onSearchRef.current?.(query, results || { found: 0, hits: [], page: 1, request_params: { per_page: 10, q: query }, search_cutoff: false, search_time_ms: 0 })
       }, debounceMs)
     } else {
       setResults(null)
@@ -173,7 +174,7 @@ const HeadlessSearchInput = <T = any>({
         clearTimeout(debounceRef.current)
       }
     }
-  }, [query, debounceMs, minQueryLength, performSearch])
+  }, [query, debounceMs, minQueryLength, performSearch, results])
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,7 +191,7 @@ const HeadlessSearchInput = <T = any>({
   }
 
   // Handle input blur
-  const handleInputBlur = (e: React.FocusEvent) => {
+  const handleInputBlur = (_e: React.FocusEvent) => {
     // Delay hiding results to allow clicking on them
     setTimeout(() => {
       if (!resultsRef.current?.contains(document.activeElement)) {
@@ -208,26 +209,28 @@ const HeadlessSearchInput = <T = any>({
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || !results) return
+    if (!isOpen || !results) {return}
 
     const resultItems = resultsRef.current?.querySelectorAll('[data-result-item]')
-    if (!resultItems) return
+    if (!resultItems) {return}
 
     const currentIndex = Array.from(resultItems).findIndex(
       (item) => item === document.activeElement,
     )
 
     switch (e.key) {
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault()
         const nextIndex = currentIndex < resultItems.length - 1 ? currentIndex + 1 : 0
         ;(resultItems[nextIndex] as HTMLElement)?.focus()
         break
-      case 'ArrowUp':
+      }
+      case 'ArrowUp': {
         e.preventDefault()
         const prevIndex = currentIndex > 0 ? currentIndex - 1 : resultItems.length - 1
         ;(resultItems[prevIndex] as HTMLElement)?.focus()
         break
+      }
       case 'Enter':
         e.preventDefault()
         if (currentIndex >= 0 && resultItems[currentIndex]) {
@@ -242,12 +245,11 @@ const HeadlessSearchInput = <T = any>({
   }
 
   // Default render functions
-  const defaultRenderResult = (result: SearchResult, index: number) => (
+  const defaultRenderResult = (result: SearchResult, _index: number) => (
     <div
-      key={result.id}
-      data-result-item
-      tabIndex={0}
       className={`search-result-item ${resultItemClassName}`}
+      data-result-item
+      key={result.id}
       onClick={() => handleResultClick(result)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -255,6 +257,8 @@ const HeadlessSearchInput = <T = any>({
           handleResultClick(result)
         }
       }}
+      role='button'
+      tabIndex={0}
     >
       <div className="search-result-title">{result.title}</div>
       {result.highlight && (
@@ -265,9 +269,9 @@ const HeadlessSearchInput = <T = any>({
       )}
       <div className="search-result-meta">
         Updated: {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'Unknown'}
-        {result.text_match && (
+        {result.text_match ? (
           <span className="search-result-match">({result.text_match}% match)</span>
-        )}
+        ) : null}
       </div>
     </div>
   )
@@ -305,27 +309,28 @@ const HeadlessSearchInput = <T = any>({
       <div className={`search-input-container ${inputWrapperClassName}`}>
         {renderInput ? (
           renderInput({
-            value: query,
+            className: `search-input ${inputClassName}`,
+            onBlur: handleInputBlur,
             onChange: handleInputChange,
             onFocus: handleInputFocus,
-            onBlur: handleInputBlur,
             onKeyDown: handleKeyDown,
             placeholder,
-            className: `search-input ${inputClassName}`,
             ref: inputRef,
+            value: query,
           })
         ) : (
           <input
+            aria-label="Search input"
+            autoComplete="off"
+            className={`search-input ${inputClassName}`}
+            onBlur={handleInputBlur}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
             ref={inputRef}
             type="text"
             value={query}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className={`search-input ${inputClassName}`}
-            autoComplete="off"
           />
         )}
         {isLoading && showLoading && (
@@ -336,7 +341,7 @@ const HeadlessSearchInput = <T = any>({
       </div>
 
       {isOpen && (
-        <div ref={resultsRef} className={`search-results ${resultsClassName}`}>
+        <div className={`search-results ${resultsClassName}`} ref={resultsRef}>
           {error && (
             renderError ? renderError(error) : defaultRenderError(error)
           )}

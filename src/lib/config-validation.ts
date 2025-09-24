@@ -13,37 +13,37 @@ const TypesenseNodeSchema = z.object({
 
 // Collection configuration schema
 const CollectionConfigSchema = z.object({
-  enabled: z.boolean().optional().default(true),
   displayName: z.string().optional(),
-  icon: z.string().optional(),
-  searchFields: z.array(z.string()).min(1, 'At least one search field is required'),
+  enabled: z.boolean().optional().default(true),
   facetFields: z.array(z.string()).optional().default([]),
-  fieldMapping: z.record(z.string(), z.string()).optional()
+  fieldMapping: z.record(z.string(), z.string()).optional(),
+  icon: z.string().optional(),
+  searchFields: z.array(z.string()).min(1, 'At least one search field is required')
 })
 
 // Cache configuration schema
 const CacheConfigSchema = z.object({
-  ttl: z.number().int().min(1000, 'TTL must be at least 1000ms').optional().default(300000), // 5 minutes
-  maxSize: z.number().int().min(1, 'Max size must be at least 1').optional().default(1000)
+  maxSize: z.number().int().min(1, 'Max size must be at least 1').optional().default(1000),
+  ttl: z.number().int().min(1000, 'TTL must be at least 1000ms').optional().default(300000) // 5 minutes
 })
 
 // Settings configuration schema
 const SettingsConfigSchema = z.object({
-  categorized: z.boolean().optional().default(false),
-  cache: CacheConfigSchema.optional()
+  cache: CacheConfigSchema.optional(),
+  categorized: z.boolean().optional().default(false)
 })
 
 // Main plugin configuration schema
 export const TypesenseSearchConfigSchema = z.object({
+  collections: z.record(z.string(), CollectionConfigSchema),
+  settings: SettingsConfigSchema.optional(),
   typesense: z.object({
-    nodes: z.array(TypesenseNodeSchema).min(1, 'At least one Typesense node is required'),
     apiKey: z.string().min(1, 'API key is required'),
     connectionTimeoutSeconds: z.number().int().min(1).optional().default(10),
+    nodes: z.array(TypesenseNodeSchema).min(1, 'At least one Typesense node is required'),
     numRetries: z.number().int().min(0).optional().default(3),
     retryIntervalSeconds: z.number().int().min(1).optional().default(1)
-  }),
-  collections: z.record(z.string(), CollectionConfigSchema),
-  settings: SettingsConfigSchema.optional()
+  })
 })
 
 // Type inference from schema
@@ -51,9 +51,9 @@ export type ValidatedTypesenseSearchConfig = z.infer<typeof TypesenseSearchConfi
 
 // Validation result type
 export interface ValidationResult {
-  success: boolean
   data?: ValidatedTypesenseSearchConfig
   errors?: string[]
+  success: boolean
 }
 
 /**
@@ -63,8 +63,8 @@ export function validateConfig(config: unknown): ValidationResult {
   try {
     const validatedConfig = TypesenseSearchConfigSchema.parse(config)
     return {
-      success: true,
-      data: validatedConfig
+      data: validatedConfig,
+      success: true
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,14 +74,14 @@ export function validateConfig(config: unknown): ValidationResult {
       })
       
       return {
-        success: false,
-        errors
+        errors,
+        success: false
       }
     }
     
     return {
-      success: false,
-      errors: ['Invalid configuration format']
+      errors: ['Invalid configuration format'],
+      success: false
     }
   }
 }
@@ -93,8 +93,8 @@ export function validateAndTransformConfig(config: unknown): ValidationResult {
   try {
     const validatedConfig = TypesenseSearchConfigSchema.parse(config)
     return {
-      success: true,
-      data: validatedConfig
+      data: validatedConfig,
+      success: true
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -104,14 +104,14 @@ export function validateAndTransformConfig(config: unknown): ValidationResult {
       })
       
       return {
-        success: false,
-        errors
+        errors,
+        success: false
       }
     }
     
     return {
-      success: false,
-      errors: ['Invalid configuration format']
+      errors: ['Invalid configuration format'],
+      success: false
     }
   }
 }
@@ -123,8 +123,8 @@ export function validateCollectionConfig(collectionSlug: string, config: unknown
   try {
     const validatedConfig = CollectionConfigSchema.parse(config)
     return {
-      success: true,
-      data: { [collectionSlug]: validatedConfig } as any
+      data: { [collectionSlug]: validatedConfig } as any,
+      success: true
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -134,14 +134,14 @@ export function validateCollectionConfig(collectionSlug: string, config: unknown
       })
       
       return {
-        success: false,
-        errors
+        errors,
+        success: false
       }
     }
     
     return {
-      success: false,
-      errors: [`Collection '${collectionSlug}': Invalid configuration format`]
+      errors: [`Collection '${collectionSlug}': Invalid configuration format`],
+      success: false
     }
   }
 }
@@ -157,15 +157,15 @@ export function getValidationErrors(errors: string[]): string {
  * Validate search parameters
  */
 export const SearchParamsSchema = z.object({
-  q: z.string().min(1, 'Query parameter "q" is required'),
+  facets: z.array(z.string()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
+  highlight_fields: z.array(z.string()).optional(),
+  num_typos: z.number().int().min(0).max(4).optional().default(0),
   page: z.number().int().min(1).optional().default(1),
   per_page: z.number().int().min(1).max(250).optional().default(10),
-  sort_by: z.string().optional(),
-  filters: z.record(z.string(), z.any()).optional(),
-  facets: z.array(z.string()).optional(),
-  highlight_fields: z.array(z.string()).optional(),
+  q: z.string().min(1, 'Query parameter "q" is required'),
   snippet_threshold: z.number().int().min(0).max(100).optional().default(30),
-  num_typos: z.number().int().min(0).max(4).optional().default(0),
+  sort_by: z.string().optional(),
   typo_tokens_threshold: z.number().int().min(1).optional().default(1)
 })
 
@@ -178,8 +178,8 @@ export function validateSearchParams(params: unknown): ValidationResult {
   try {
     const validatedParams = SearchParamsSchema.parse(params)
     return {
-      success: true,
-      data: validatedParams as any
+      data: validatedParams as any,
+      success: true
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -189,14 +189,14 @@ export function validateSearchParams(params: unknown): ValidationResult {
       })
       
       return {
-        success: false,
-        errors
+        errors,
+        success: false
       }
     }
     
     return {
-      success: false,
-      errors: ['Invalid search parameters format']
+      errors: ['Invalid search parameters format'],
+      success: false
     }
   }
 }

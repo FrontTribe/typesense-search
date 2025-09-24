@@ -1,9 +1,11 @@
-import { describe, expect, test, beforeEach, vi } from 'vitest'
 import type { Config } from 'payload'
+
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+
 import { typesenseSearch } from '../index'
-import { createTypesenseClient } from '../lib/typesense-client'
 import { initializeTypesenseCollections } from '../lib/initialization'
 import { mapPayloadDocumentToTypesense } from '../lib/schema-mapper'
+import { createTypesenseClient } from '../lib/typesense-client'
 
 // Mock dependencies
 vi.mock('../lib/typesense-client')
@@ -12,8 +14,8 @@ vi.mock('../lib/schema-mapper')
 
 describe('Typesense Search Plugin', () => {
   let mockConfig: Config
-  let mockTypesenseClient: any
-  let pluginOptions: any
+  let mockTypesenseClient: Record<string, unknown>
+  let pluginOptions: Record<string, unknown>
 
   beforeEach(() => {
     mockTypesenseClient = {
@@ -21,16 +23,21 @@ describe('Typesense Search Plugin', () => {
         create: vi.fn(),
         documents: vi.fn(() => ({
           create: vi.fn(),
-          upsert: vi.fn(),
           delete: vi.fn(),
+          upsert: vi.fn(),
         })),
       })),
     }
-    ;(createTypesenseClient as any).mockReturnValue(mockTypesenseClient)
-    ;(initializeTypesenseCollections as any).mockResolvedValue(undefined)
-    ;(mapPayloadDocumentToTypesense as any).mockReturnValue({ id: 'test', title: 'Test' })
+    ;(createTypesenseClient as unknown as jest.Mock).mockReturnValue(mockTypesenseClient)
+    ;(initializeTypesenseCollections as unknown as jest.Mock).mockResolvedValue(undefined)
+    ;(mapPayloadDocumentToTypesense as unknown as jest.Mock).mockReturnValue({ id: 'test', title: 'Test' })
 
     mockConfig = {
+      admin: {
+        components: {
+          beforeDashboard: [],
+        },
+      },
       collections: [
         {
           slug: 'posts',
@@ -50,37 +57,32 @@ describe('Typesense Search Plugin', () => {
         },
       ],
       endpoints: [],
-      admin: {
-        components: {
-          beforeDashboard: [],
-        },
-      },
-    } as any
+    } as Record<string, unknown>
 
     pluginOptions = {
-      typesense: {
-        apiKey: 'test-key',
-        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
-      },
       collections: {
-        posts: {
-          enabled: true,
-          searchFields: ['title', 'content'],
-          facetFields: ['category', 'status'],
-          displayName: 'Blog Posts',
-          icon: '📝',
-        },
         media: {
-          enabled: true,
-          searchFields: ['filename', 'alt'],
-          facetFields: ['type'],
           displayName: 'Media Files',
+          enabled: true,
+          facetFields: ['type'],
           icon: '🖼️',
+          searchFields: ['filename', 'alt'],
+        },
+        posts: {
+          displayName: 'Blog Posts',
+          enabled: true,
+          facetFields: ['category', 'status'],
+          icon: '📝',
+          searchFields: ['title', 'content'],
         },
       },
       settings: {
         autoSync: true,
         categorized: true,
+      },
+      typesense: {
+        apiKey: 'test-key',
+        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
       },
     }
   })
@@ -121,15 +123,15 @@ describe('Typesense Search Plugin', () => {
     const pluginOptionsWithDisabled = {
       ...pluginOptions,
       collections: {
-        posts: {
-          enabled: false,
-          searchFields: ['title'],
-          facetFields: [],
-        },
         media: {
           enabled: true,
-          searchFields: ['filename'],
           facetFields: [],
+          searchFields: ['filename'],
+        },
+        posts: {
+          enabled: false,
+          facetFields: [],
+          searchFields: ['title'],
         },
       },
     }
@@ -181,7 +183,7 @@ describe('Typesense Search Plugin', () => {
 
     // Simulate onInit call
     if (result.onInit) {
-      await result.onInit({ payload: {} as any })
+      await result.onInit({ payload: {} as Record<string, unknown> })
     }
 
     expect(initializeTypesenseCollections).toHaveBeenCalledWith(
@@ -230,9 +232,9 @@ describe('Typesense Search Plugin', () => {
       ...mockConfig,
       endpoints: [
         {
+          handler: vi.fn(),
           method: 'get' as const,
           path: '/custom',
-          handler: vi.fn(),
         },
       ],
     }
@@ -253,8 +255,8 @@ describe('Typesense Search Plugin', () => {
 
     expect(afterChangeHook).toBeDefined()
 
-    const mockDoc = { id: '1', title: 'Test Post', content: 'Test content' }
-    const mockReq = { payload: {} as any }
+    const mockDoc = { id: '1', content: 'Test content', title: 'Test Post' }
+    const mockReq = { payload: {} as Record<string, unknown> }
 
     await afterChangeHook!({
       doc: mockDoc,
@@ -277,8 +279,8 @@ describe('Typesense Search Plugin', () => {
     const postsCollection = result.collections?.find((c) => c.slug === 'posts')
     const afterChangeHook = postsCollection?.hooks?.afterChange?.[0]
 
-    const mockDoc = { id: '1', title: 'Updated Post', content: 'Updated content' }
-    const mockReq = { payload: {} as any }
+    const mockDoc = { id: '1', content: 'Updated content', title: 'Updated Post' }
+    const mockReq = { payload: {} as Record<string, unknown> }
 
     await afterChangeHook!({
       doc: mockDoc,
@@ -304,7 +306,7 @@ describe('Typesense Search Plugin', () => {
     expect(afterDeleteHook).toBeDefined()
 
     const mockDoc = { id: '1', title: 'Test Post' }
-    const mockReq = { payload: {} as any }
+    const mockReq = { payload: {} as Record<string, unknown> }
 
     await afterDeleteHook!({
       doc: mockDoc,
@@ -328,7 +330,7 @@ describe('Typesense Search Plugin', () => {
       .create.mockRejectedValue(new Error('Typesense error'))
 
     const mockDoc = { id: '1', title: 'Test Post' }
-    const mockReq = { payload: {} as any }
+    const mockReq = { payload: {} as Record<string, unknown> }
 
     // Should not throw
     await expect(

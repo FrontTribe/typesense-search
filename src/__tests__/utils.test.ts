@@ -1,31 +1,32 @@
-import { describe, expect, test, beforeEach, vi } from 'vitest'
+import { describe, expect, test } from 'vitest'
+
 import { mapPayloadDocumentToTypesense } from '../lib/schema-mapper'
 
 describe('Schema Mapper', () => {
   test('should map basic text fields', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
       content: 'This is test content',
-      status: 'published',
       createdAt: new Date('2024-01-01'),
+      status: 'published',
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'content'],
       facetFields: ['status'],
+      searchFields: ['title', 'content'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
       content: 'This is test content',
-      status: 'published',
       createdAt: new Date('2024-01-01').getTime(),
+      status: 'published',
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -33,7 +34,6 @@ describe('Schema Mapper', () => {
   test('should handle richText fields', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
       content: {
         root: {
           children: [
@@ -50,22 +50,23 @@ describe('Schema Mapper', () => {
         },
       },
       createdAt: new Date('2024-01-01'),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'content'],
       facetFields: [],
+      searchFields: ['title', 'content'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
       content: 'This is rich text content',
       createdAt: new Date('2024-01-01').getTime(),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -73,31 +74,31 @@ describe('Schema Mapper', () => {
   test('should handle array fields with dot notation', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
+      createdAt: new Date('2024-01-01'),
       tags: [{ tag: 'javascript' }, { tag: 'typescript' }],
       technologies: [
         { name: 'React', category: 'frontend' },
         { name: 'Node.js', category: 'backend' },
       ],
-      createdAt: new Date('2024-01-01'),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'tags.tag', 'technologies.name'],
       facetFields: ['technologies.category'],
+      searchFields: ['title', 'tags.tag', 'technologies.name'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
-      'tags.tag': 'javascript typescript',
-      'technologies.name': 'React Node.js',
-      'technologies.category': 'unknown',
       createdAt: new Date('2024-01-01').getTime(),
+      'tags.tag': 'javascript typescript',
+      'technologies.category': 'unknown',
+      'technologies.name': 'React Node.js',
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -105,26 +106,26 @@ describe('Schema Mapper', () => {
   test('should handle missing fields with defaults', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
       createdAt: new Date('2024-01-01'),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'content', 'description'],
       facetFields: ['status'],
+      searchFields: ['title', 'content', 'description'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
       content: '',
+      createdAt: new Date('2024-01-01').getTime(),
       description: '',
       status: 'unknown',
-      createdAt: new Date('2024-01-01').getTime(),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -132,26 +133,26 @@ describe('Schema Mapper', () => {
   test('should handle null and undefined values', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
       content: null,
-      description: undefined,
       createdAt: new Date('2024-01-01'),
+      description: undefined,
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'content'],
       facetFields: [],
+      searchFields: ['title', 'content'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
       content: '',
       createdAt: new Date('2024-01-01').getTime(),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -159,27 +160,27 @@ describe('Schema Mapper', () => {
   test('should handle empty arrays', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
-      tags: [],
       categories: [],
       createdAt: new Date('2024-01-01'),
+      tags: [],
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'tags.tag'],
       facetFields: ['categories'],
+      searchFields: ['title', 'tags.tag'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
-      'tags.tag': '',
       categories: '',
       createdAt: new Date('2024-01-01').getTime(),
+      'tags.tag': '',
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -193,8 +194,8 @@ describe('Schema Mapper', () => {
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'content'],
       facetFields: [],
+      searchFields: ['title', 'content'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
@@ -211,8 +212,8 @@ describe('Schema Mapper', () => {
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title'],
       facetFields: [],
+      searchFields: ['title'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)
@@ -230,8 +231,8 @@ describe('Schema Mapper', () => {
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title'],
       facetFields: [],
+      searchFields: ['title'],
     }
 
     expect(() => {
@@ -242,8 +243,8 @@ describe('Schema Mapper', () => {
   test('should handle missing collection config gracefully', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
       createdAt: new Date('2024-01-01'),
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
     }
 
@@ -251,10 +252,10 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
-      title: 'Test Post',
       content: '',
-      description: '',
       createdAt: new Date('2024-01-01').getTime(),
+      description: '',
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01').getTime(),
     })
   })
@@ -262,17 +263,17 @@ describe('Schema Mapper', () => {
   test('should convert all values to strings for search fields', () => {
     const doc = {
       id: '1',
-      title: 'Test Post',
-      views: 100,
-      published: true,
       createdAt: new Date('2024-01-01'),
+      published: true,
+      title: 'Test Post',
       updatedAt: new Date('2024-01-01'),
+      views: 100,
     }
 
     const collectionConfig = {
       enabled: true,
-      searchFields: ['title', 'views', 'published'],
       facetFields: [],
+      searchFields: ['title', 'views', 'published'],
     }
 
     const result = mapPayloadDocumentToTypesense(doc, 'posts', collectionConfig)

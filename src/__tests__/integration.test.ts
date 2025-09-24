@@ -1,10 +1,10 @@
-import { describe, expect, test, beforeEach, afterEach, vi } from 'vitest'
 import type { Payload } from 'payload'
+
 import { createPayloadRequest, getPayload } from 'payload'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 // Mock config for testing
 const config = {
-  secret: 'test-secret-key',
   collections: [
     {
       slug: 'posts',
@@ -23,7 +23,8 @@ const config = {
   ],
   endpoints: [],
   plugins: [],
-} as any
+  secret: 'test-secret-key',
+} as Record<string, unknown>
 
 // Mock Typesense client
 const mockTypesenseClient = {
@@ -31,9 +32,9 @@ const mockTypesenseClient = {
     create: vi.fn(),
     documents: vi.fn(() => ({
       create: vi.fn(),
-      upsert: vi.fn(),
       delete: vi.fn(),
       search: vi.fn(),
+      upsert: vi.fn(),
     })),
   })),
 }
@@ -88,7 +89,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(200)
 
@@ -104,14 +105,14 @@ describe('Typesense Search Plugin Integration Tests', () => {
       .collections()
       .documents()
       .search.mockResolvedValue({
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 5,
       })
@@ -123,7 +124,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(200)
 
@@ -140,14 +141,14 @@ describe('Typesense Search Plugin Integration Tests', () => {
       .collections()
       .documents()
       .search.mockResolvedValue({
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 3,
       })
@@ -159,7 +160,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(200)
 
@@ -174,14 +175,14 @@ describe('Typesense Search Plugin Integration Tests', () => {
       .collections()
       .documents()
       .search.mockResolvedValue({
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 2,
       })
@@ -193,7 +194,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(200)
 
@@ -208,14 +209,14 @@ describe('Typesense Search Plugin Integration Tests', () => {
       .collections()
       .documents()
       .search.mockResolvedValue({
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 4,
       })
@@ -223,23 +224,23 @@ describe('Typesense Search Plugin Integration Tests', () => {
     payload = await getPayload({ config })
 
     const searchBody = {
-      q: 'test',
+      filters: { status: 'published' },
       page: 1,
       per_page: 10,
+      q: 'test',
       sort_by: 'createdAt:desc',
-      filters: { status: 'published' },
     }
 
     const request = new Request('http://localhost:3000/api/search/posts', {
-      method: 'POST',
+      body: JSON.stringify(searchBody),
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(searchBody),
+      method: 'POST',
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(200)
 
@@ -256,7 +257,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(400)
 
@@ -273,7 +274,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(400)
 
@@ -296,7 +297,7 @@ describe('Typesense Search Plugin Integration Tests', () => {
     })
 
     const payloadRequest = await createPayloadRequest({ config, request })
-    const response = await payloadRequest
+    const response = payloadRequest
 
     expect(response.status).toBe(500)
 
@@ -317,8 +318,8 @@ describe('Typesense Search Plugin Integration Tests', () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
-        title: 'Test Post for Typesense',
         content: 'This is test content for search functionality',
+        title: 'Test Post for Typesense',
       },
     })
 
@@ -342,18 +343,18 @@ describe('Typesense Search Plugin Integration Tests', () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
-        title: 'Original Title',
         content: 'Original content',
+        title: 'Original Title',
       },
     })
 
     // Update the post
     const updatedPost = await payload.update({
-      collection: 'posts',
       id: post.id,
+      collection: 'posts',
       data: {
-        title: 'Updated Title',
         content: 'Updated content',
+        title: 'Updated Title',
       },
     })
 
@@ -375,15 +376,15 @@ describe('Typesense Search Plugin Integration Tests', () => {
     const post = await payload.create({
       collection: 'posts',
       data: {
-        title: 'Post to Delete',
         content: 'This post will be deleted',
+        title: 'Post to Delete',
       },
     })
 
     // Delete the post
     await payload.delete({
-      collection: 'posts',
       id: post.id,
+      collection: 'posts',
     })
 
     // Wait a moment for sync to complete
@@ -400,37 +401,37 @@ describe('Typesense Search Plugin Integration Tests', () => {
       .search.mockImplementation((params) => {
         if (params.collection_name === 'posts') {
           return Promise.resolve({
-            hits: [{ document: { id: '1', title: 'Post', _collection: 'posts' } }],
             found: 1,
+            hits: [{ document: { id: '1', _collection: 'posts', title: 'Post' } }],
             page: 1,
             search_time_ms: 2,
           })
         }
         if (params.collection_name === 'media') {
           return Promise.resolve({
-            hits: [{ document: { id: '2', filename: 'image.jpg', _collection: 'media' } }],
             found: 1,
+            hits: [{ document: { id: '2', _collection: 'media', filename: 'image.jpg' } }],
             page: 1,
             search_time_ms: 1,
           })
         }
-        return Promise.resolve({ hits: [], found: 0, page: 1, search_time_ms: 0 })
+        return Promise.resolve({ found: 0, hits: [], page: 1, search_time_ms: 0 })
       })
 
     // Test posts collection
     const postsRequest = new Request('http://localhost:3000/api/search/posts?q=test', {
       method: 'GET',
     })
-    const postsPayloadRequest = await createPayloadRequest({ config, request: postsRequest })
-    const postsResponse = await postsPayloadRequest
+    const postsPayloadRequest = createPayloadRequest({ config, request: postsRequest })
+    const postsResponse = postsPayloadRequest
     expect(postsResponse.status).toBe(200)
 
     // Test media collection
     const mediaRequest = new Request('http://localhost:3000/api/search/media?q=test', {
       method: 'GET',
     })
-    const mediaPayloadRequest = await createPayloadRequest({ config, request: mediaRequest })
-    const mediaResponse = await mediaPayloadRequest
+    const mediaPayloadRequest = createPayloadRequest({ config, request: mediaRequest })
+    const mediaResponse = mediaPayloadRequest
     expect(mediaResponse.status).toBe(200)
   })
 })

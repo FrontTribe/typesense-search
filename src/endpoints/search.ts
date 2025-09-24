@@ -1,28 +1,27 @@
 import type { PayloadHandler } from 'payload'
-import Typesense from 'typesense'
+import type Typesense from 'typesense'
+
 import type { TypesenseSearchConfig } from '../index.js'
+
 import { searchCache } from '../lib/cache.js'
-import { validateSearchParams, getValidationErrors } from '../lib/config-validation.js'
-import { createHealthCheckHandler, createDetailedHealthCheckHandler } from './health.js'
+import { getValidationErrors, validateSearchParams } from '../lib/config-validation.js'
+import { createDetailedHealthCheckHandler, createHealthCheckHandler } from './health.js'
 
 // Universal search across all collections
 const searchAllCollections = async (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
   query: string,
-  options: { page: number; per_page: number; sort_by?: string; filters: any },
+  options: { filters: Record<string, unknown>; page: number; per_page: number; sort_by?: string },
 ) => {
   try {
-    console.log('=== UNIVERSAL SEARCH START ===')
-    console.log('Query:', query)
-    console.log('Options:', options)
-    console.log('Plugin options collections:', Object.keys(pluginOptions.collections || {}))
+    // Universal search logic
 
     // Check cache first
-    const cacheKey = `universal:${query}:${options.page}:${options.per_page}`
+    const _cacheKey = `universal:${query}:${options.page}:${options.per_page}`
     const cachedResult = searchCache.get(query, 'universal', options)
     if (cachedResult) {
-      console.log('Returning cached result for query:', query)
+      // Return cached result
       return Response.json(cachedResult)
     }
 
@@ -30,10 +29,7 @@ const searchAllCollections = async (
       ([_, config]) => config?.enabled,
     )
 
-    console.log(
-      'Enabled collections:',
-      enabledCollections.map(([name]) => name),
-    )
+    // Process enabled collections
 
     if (enabledCollections.length === 0) {
       return Response.json({ error: 'No collections enabled for search' }, { status: 400 })
@@ -42,31 +38,25 @@ const searchAllCollections = async (
     // Search all collections in parallel
     const searchPromises = enabledCollections.map(async ([collectionName, config]) => {
       try {
-        const searchParameters: any = {
-          q: query,
-          query_by: config?.searchFields?.join(',') || 'title,content',
+        const searchParameters: Record<string, unknown> = {
+          highlight_full_fields: config?.searchFields?.join(',') || 'title,content',
+          num_typos: 0,
           page: options.page,
           per_page: Math.ceil(options.per_page / enabledCollections.length), // Distribute results across collections
-          highlight_full_fields: config?.searchFields?.join(',') || 'title,content',
+          q: query,
+          query_by: config?.searchFields?.join(',') || 'title,content',
           snippet_threshold: 30,
-          num_typos: 0,
           typo_tokens_threshold: 1,
         }
 
-        console.log(
-          `Searching collection ${collectionName} with query: "${query}"`,
-          searchParameters,
-        )
+        // Search collection
 
         const results = await typesenseClient
           .collections(collectionName)
           .documents()
           .search(searchParameters)
 
-        console.log(`Results for ${collectionName}:`, {
-          found: results.found,
-          hits: results.hits?.length,
-        })
+        // Process results
 
         // Add collection metadata to each hit
         return {
@@ -83,14 +73,14 @@ const searchAllCollections = async (
             })) || [],
         }
       } catch (error) {
-        console.error(`Search error in collection ${collectionName}:`, error)
+        // Handle search error
         return {
           collection: collectionName,
           displayName: config?.displayName || collectionName,
-          icon: config?.icon || '📄',
+          error: error instanceof Error ? error.message : 'Unknown error',
           found: 0,
           hits: [],
-          error: error instanceof Error ? error.message : 'Unknown error',
+          icon: config?.icon || '📄',
         }
       }
     })
@@ -105,19 +95,19 @@ const searchAllCollections = async (
     combinedHits.sort((a, b) => (b.text_match || 0) - (a.text_match || 0))
 
     const searchResult = {
-      found: totalFound,
-      hits: combinedHits.slice(0, options.per_page),
-      page: options.page,
-      request_params: { q: query, per_page: options.per_page },
-      search_cutoff: false,
-      search_time_ms: 0,
       collections: results.map((r) => ({
         collection: r.collection,
         displayName: r.displayName,
-        icon: r.icon,
-        found: r.found || 0,
         error: r.error,
+        found: r.found || 0,
+        icon: r.icon,
       })),
+      found: totalFound,
+      hits: combinedHits.slice(0, options.per_page),
+      page: options.page,
+      request_params: { per_page: options.per_page, q: query },
+      search_cutoff: false,
+      search_time_ms: 0,
     }
 
     // Cache the result
@@ -125,11 +115,11 @@ const searchAllCollections = async (
 
     return Response.json(searchResult)
   } catch (error) {
-    console.error('Universal search error:', error)
+    // Handle universal search error
     return Response.json(
       {
-        error: 'Universal search failed',
         details: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Universal search failed',
       },
       { status: 500 },
     )
@@ -143,39 +133,39 @@ export const createSearchEndpoints = (
 ) => {
   return [
     {
+      handler: createCollectionsHandler(pluginOptions),
       method: 'get' as const,
       path: '/search/collections',
-      handler: createCollectionsHandler(pluginOptions),
     },
     {
+      handler: createSuggestHandler(typesenseClient, pluginOptions),
       method: 'get' as const,
       path: '/search/:collectionName/suggest',
-      handler: createSuggestHandler(typesenseClient, pluginOptions),
     },
     {
+      handler: createSearchHandler(typesenseClient, pluginOptions),
       method: 'get' as const,
       path: '/search/:collectionName',
-      handler: createSearchHandler(typesenseClient, pluginOptions),
     },
     {
+      handler: createAdvancedSearchHandler(typesenseClient, pluginOptions),
       method: 'post' as const,
       path: '/search/:collectionName',
-      handler: createAdvancedSearchHandler(typesenseClient, pluginOptions),
     },
     {
+      handler: createSearchHandler(typesenseClient, pluginOptions),
       method: 'get' as const,
       path: '/search',
-      handler: createSearchHandler(typesenseClient, pluginOptions),
     },
     {
+      handler: createHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
       method: 'get' as const,
       path: '/search/health',
-      handler: createHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
     },
     {
+      handler: createDetailedHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
       method: 'get' as const,
       path: '/search/health/detailed',
-      handler: createDetailedHealthCheckHandler(typesenseClient, pluginOptions, lastSyncTime),
     },
   ]
 }
@@ -184,7 +174,7 @@ const createSearchHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
-  return async (request: any) => {
+  return async (request: Record<string, unknown>) => {
     try {
       // Extract query parameters from the request
       const { params, query } = request
@@ -196,18 +186,18 @@ const createSearchHandler = (
       const per_page = parseInt(query?.per_page || '10', 10)
       const sort_by = query?.sort_by
 
-      console.log('Search handler called with:', { q, page, per_page, sort_by, collectionName })
+      // Process search request
 
       // Validate search parameters
-      const searchParams = { q, page, per_page, sort_by }
+      const searchParams = { page, per_page, q, sort_by }
       const validation = validateSearchParams(searchParams)
       if (!validation.success) {
         return Response.json(
           {
-            error: 'Invalid search parameters',
             details: getValidationErrors(validation.errors || []),
+            error: 'Invalid search parameters',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -216,8 +206,8 @@ const createSearchHandler = (
         if (!q || q.trim() === '') {
           return Response.json(
             {
-              error: 'Query parameter "q" is required',
               details: 'Please provide a search query using ?q=your_search_term',
+              error: 'Query parameter "q" is required',
               example: '/api/search?q=example',
             },
             { status: 400 },
@@ -225,10 +215,10 @@ const createSearchHandler = (
         }
 
         return await searchAllCollections(typesenseClient, pluginOptions, q, {
+          filters: {},
           page,
           per_page,
           sort_by,
-          filters: {},
         })
       }
 
@@ -242,15 +232,15 @@ const createSearchHandler = (
       }
 
       const searchParameters: any = {
+        highlight_full_fields:
+          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
+        num_typos: 0,
+        page: Number(page),
+        per_page: Number(per_page),
         q: q as string,
         query_by:
           pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
-        page: Number(page),
-        per_page: Number(per_page),
-        highlight_full_fields:
-          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
         snippet_threshold: 30,
-        num_typos: 0,
         typo_tokens_threshold: 1,
       }
 
@@ -259,13 +249,13 @@ const createSearchHandler = (
         searchParameters.sort_by = sort_by as string
       }
 
-      console.log('Executing Typesense search with parameters:', searchParameters)
+      // Execute Typesense search
 
       // Check cache first
-      const cacheOptions = { page, per_page, sort_by, collection: collectionName }
+      const cacheOptions = { collection: collectionName, page, per_page, sort_by }
       const cachedResult = searchCache.get(q, collectionName, cacheOptions)
       if (cachedResult) {
-        console.log('Returning cached result for collection:', collectionName)
+        // Return cached result
         return Response.json(cachedResult)
       }
 
@@ -274,18 +264,18 @@ const createSearchHandler = (
         .documents()
         .search(searchParameters)
 
-      console.log('Search results:', searchResults)
-      
+      // Process search results
+
       // Cache the result
       searchCache.set(q, searchResults, collectionName, cacheOptions)
-      
+
       return Response.json(searchResults)
     } catch (error) {
-      console.error('Search handler error:', error)
+      // Handle search error
       return Response.json(
         {
-          error: 'Search handler failed',
           details: error instanceof Error ? error.message : 'Unknown error',
+          error: 'Search handler failed',
         },
         { status: 500 },
       )
@@ -299,10 +289,10 @@ const createAdvancedSearchHandler = (
 ): PayloadHandler => {
   return async (request: any) => {
     const { params, req } = request
-    const { collectionName } = (params as any) || {}
-    const body = (await (req as any)?.json?.()) || {}
+    const { collectionName } = params || {}
+    const body = (await req?.json?.()) || {}
 
-    if (!pluginOptions.collections?.[collectionName as any]?.enabled) {
+    if (!pluginOptions.collections?.[collectionName]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
     }
 
@@ -314,7 +304,7 @@ const createAdvancedSearchHandler = (
 
       return Response.json(searchResults)
     } catch (error) {
-      console.error('Advanced search error:', error)
+      // Handle advanced search error
       return Response.json({ error: 'Advanced search failed' }, { status: 500 })
     }
   }
@@ -347,42 +337,42 @@ const createSuggestHandler = (
         .collections(collectionName)
         .documents()
         .search({
-          q: q as string,
-          query_by:
+          highlight_full_fields:
             pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
           per_page: Number(limit),
-          highlight_full_fields:
+          q,
+          query_by:
             pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
           snippet_threshold: 30,
         })
 
       return Response.json(suggestResults)
     } catch (error) {
-      console.error('Suggest error:', error)
+      // Handle suggest error
       return Response.json({ error: 'Suggest failed' }, { status: 500 })
     }
   }
 }
 
 const createCollectionsHandler = (pluginOptions: TypesenseSearchConfig): PayloadHandler => {
-  return async () => {
+  return () => {
     try {
       const collections = Object.entries(pluginOptions.collections || {})
         .filter(([_, config]) => config?.enabled)
         .map(([slug, config]) => ({
           slug,
           displayName: config?.displayName || slug.charAt(0).toUpperCase() + slug.slice(1),
+          facetFields: config?.facetFields || [],
           icon: config?.icon || '📄',
           searchFields: config?.searchFields || [],
-          facetFields: config?.facetFields || [],
         }))
 
       return Response.json({
-        collections,
         categorized: pluginOptions.settings?.categorized || false,
+        collections,
       })
     } catch (error) {
-      console.error('Collections handler error:', error)
+      // Handle collections error
       return Response.json({ error: 'Failed to get collections' }, { status: 500 })
     }
   }

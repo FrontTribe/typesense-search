@@ -1,6 +1,7 @@
-import { describe, expect, test, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import React from 'react'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+
 import UnifiedSearchInput from '../components/UnifiedSearchInput'
 
 // Mock fetch
@@ -9,30 +10,30 @@ global.fetch = vi.fn()
 // Mock CSS modules
 vi.mock('../components/HeadlessSearchInput.module.css', () => ({
   default: {
-    searchContainer: 'search-container',
-    searchInputContainer: 'search-input-container',
-    searchInput: 'search-input',
-    resultsContainer: 'results-container',
-    resultsList: 'results-list',
-    searchResult: 'search-result',
-    resultHeader: 'result-header',
     collectionIcon: 'collection-icon',
     collectionName: 'collection-name',
-    resultTitle: 'result-title',
-    resultDescription: 'result-description',
-    resultHighlight: 'result-highlight',
-    resultMeta: 'result-meta',
-    noResults: 'no-results',
-    noResultsIcon: 'no-results-icon',
-    noResultsTitle: 'no-results-title',
-    noResultsDescription: 'no-results-description',
-    loading: 'loading',
-    spinner: 'spinner',
     error: 'error',
     errorIcon: 'error-icon',
     errorMessage: 'error-message',
-    resultCount: 'result-count',
     inputLoading: 'input-loading',
+    loading: 'loading',
+    noResults: 'no-results',
+    noResultsDescription: 'no-results-description',
+    noResultsIcon: 'no-results-icon',
+    noResultsTitle: 'no-results-title',
+    resultCount: 'result-count',
+    resultDescription: 'result-description',
+    resultHeader: 'result-header',
+    resultHighlight: 'result-highlight',
+    resultMeta: 'result-meta',
+    resultsContainer: 'results-container',
+    resultsList: 'results-list',
+    resultTitle: 'result-title',
+    searchContainer: 'search-container',
+    searchInput: 'search-input',
+    searchInputContainer: 'search-input-container',
+    searchResult: 'search-result',
+    spinner: 'spinner',
   },
 }))
 
@@ -41,57 +42,57 @@ describe('UnifiedSearchInput Component', () => {
     vi.clearAllMocks()
 
     // Mock successful collections response
-    ;(global.fetch as any).mockImplementation((url: string) => {
+    ;(global.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/search/collections')) {
         return Promise.resolve({
-          ok: true,
           json: () =>
             Promise.resolve({
+              categorized: true,
               collections: [
                 {
                   slug: 'posts',
                   displayName: 'Blog Posts',
+                  facetFields: ['category', 'status'],
                   icon: '📝',
                   searchFields: ['title', 'content'],
-                  facetFields: ['category', 'status'],
                 },
                 {
                   slug: 'portfolio',
                   displayName: 'Portfolio',
+                  facetFields: ['status', 'featured'],
                   icon: '💼',
                   searchFields: ['title', 'description'],
-                  facetFields: ['status', 'featured'],
                 },
               ],
-              categorized: true,
             }),
+          ok: true,
         })
       }
       if (url.includes('/search?q=')) {
         return Promise.resolve({
-          ok: true,
           json: () =>
             Promise.resolve({
+              found: 1,
               hits: [
                 {
+                  collection: 'posts',
+                  displayName: 'Blog Posts',
                   document: {
                     id: '1',
-                    title: 'Test Post',
                     _collection: 'posts',
+                    title: 'Test Post',
                   },
                   highlight: {
                     title: { snippet: 'Test <mark>Post</mark>' },
                   },
-                  collection: 'posts',
-                  displayName: 'Blog Posts',
                   icon: '📝',
                   text_match: 100,
                 },
               ],
-              found: 1,
               page: 1,
               search_time_ms: 5,
             }),
+          ok: true,
         })
       }
       return Promise.reject(new Error('Unknown URL'))
@@ -140,7 +141,7 @@ describe('UnifiedSearchInput Component', () => {
 
   test('should not search with query shorter than minQueryLength', async () => {
     render(
-      <UnifiedSearchInput baseUrl="http://localhost:3000" minQueryLength={3} debounceMs={100} />,
+      <UnifiedSearchInput baseUrl="http://localhost:3000" debounceMs={100} minQueryLength={3} />,
     )
 
     const input = screen.getByPlaceholderText('Search...')
@@ -186,7 +187,7 @@ describe('UnifiedSearchInput Component', () => {
   test('should call onSearch callback', async () => {
     const onSearch = vi.fn()
     render(
-      <UnifiedSearchInput baseUrl="http://localhost:3000" onSearch={onSearch} debounceMs={100} />,
+      <UnifiedSearchInput baseUrl="http://localhost:3000" debounceMs={100} onSearch={onSearch} />,
     )
 
     const input = screen.getByPlaceholderText('Search...')
@@ -203,7 +204,7 @@ describe('UnifiedSearchInput Component', () => {
   test('should call onResults callback', async () => {
     const onResults = vi.fn()
     render(
-      <UnifiedSearchInput baseUrl="http://localhost:3000" onResults={onResults} debounceMs={100} />,
+      <UnifiedSearchInput baseUrl="http://localhost:3000" debounceMs={100} onResults={onResults} />,
     )
 
     const input = screen.getByPlaceholderText('Search...')
@@ -212,8 +213,8 @@ describe('UnifiedSearchInput Component', () => {
     await waitFor(
       () => {
         expect(onResults).toHaveBeenCalledWith({
-          hits: expect.any(Array),
           found: 1,
+          hits: expect.any(Array),
           page: 1,
           search_time_ms: 5,
         })
@@ -227,8 +228,8 @@ describe('UnifiedSearchInput Component', () => {
     render(
       <UnifiedSearchInput
         baseUrl="http://localhost:3000"
-        onResultClick={onResultClick}
         debounceMs={100}
+        onResultClick={onResultClick}
       />,
     )
 
@@ -240,16 +241,16 @@ describe('UnifiedSearchInput Component', () => {
         const result = screen.getByText('Test Post')
         fireEvent.click(result)
         expect(onResultClick).toHaveBeenCalledWith({
+          collection: 'posts',
+          displayName: 'Blog Posts',
           document: {
             id: '1',
-            title: 'Test Post',
             _collection: 'posts',
+            title: 'Test Post',
           },
           highlight: {
             title: { snippet: 'Test <mark>Post</mark>' },
           },
-          collection: 'posts',
-          displayName: 'Blog Posts',
           icon: '📝',
           text_match: 100,
         })
@@ -260,18 +261,18 @@ describe('UnifiedSearchInput Component', () => {
 
   test('should handle search errors', async () => {
     const onError = vi.fn()
-    ;(global.fetch as any).mockImplementation((url: string) => {
+    ;(global.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/search?q=')) {
         return Promise.reject(new Error('Search failed'))
       }
       return Promise.resolve({
-        ok: true,
         json: () => Promise.resolve({ collections: [] }),
+        ok: true,
       })
     })
 
     render(
-      <UnifiedSearchInput baseUrl="http://localhost:3000" onError={onError} debounceMs={100} />,
+      <UnifiedSearchInput baseUrl="http://localhost:3000" debounceMs={100} onError={onError} />,
     )
 
     const input = screen.getByPlaceholderText('Search...')
@@ -286,22 +287,22 @@ describe('UnifiedSearchInput Component', () => {
   })
 
   test('should display loading state', async () => {
-    ;(global.fetch as any).mockImplementation((url: string) => {
+    ;(global.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/search?q=')) {
         return new Promise((resolve) => {
           setTimeout(
             () =>
               resolve({
+                json: () => Promise.resolve({ found: 0, hits: [], page: 1, search_time_ms: 0 }),
                 ok: true,
-                json: () => Promise.resolve({ hits: [], found: 0, page: 1, search_time_ms: 0 }),
               }),
             100,
           )
         })
       }
       return Promise.resolve({
-        ok: true,
         json: () => Promise.resolve({ collections: [] }),
+        ok: true,
       })
     })
 
@@ -319,16 +320,16 @@ describe('UnifiedSearchInput Component', () => {
   })
 
   test('should display no results message', async () => {
-    ;(global.fetch as any).mockImplementation((url: string) => {
+    ;(global.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/search?q=')) {
         return Promise.resolve({
+          json: () => Promise.resolve({ found: 0, hits: [], page: 1, search_time_ms: 0 }),
           ok: true,
-          json: () => Promise.resolve({ hits: [], found: 0, page: 1, search_time_ms: 0 }),
         })
       }
       return Promise.resolve({
-        ok: true,
         json: () => Promise.resolve({ collections: [] }),
+        ok: true,
       })
     })
 
@@ -389,7 +390,7 @@ describe('UnifiedSearchInput Component', () => {
 
   test('should use custom renderResult function', async () => {
     const customRenderResult = vi.fn((hit) => (
-      <div key={hit.document.id} data-testid="custom-result">
+      <div data-testid="custom-result" key={hit.document.id}>
         Custom: {hit.document.title}
       </div>
     ))
@@ -397,8 +398,8 @@ describe('UnifiedSearchInput Component', () => {
     render(
       <UnifiedSearchInput
         baseUrl="http://localhost:3000"
-        renderResult={customRenderResult}
         debounceMs={100}
+        renderResult={customRenderResult}
       />,
     )
 
@@ -420,24 +421,24 @@ describe('UnifiedSearchInput Component', () => {
       <div data-testid="custom-no-results">No results for: {query}</div>
     ))
 
-    ;(global.fetch as any).mockImplementation((url: string) => {
+    ;(global.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
       if (url.includes('/search?q=')) {
         return Promise.resolve({
+          json: () => Promise.resolve({ found: 0, hits: [], page: 1, search_time_ms: 0 }),
           ok: true,
-          json: () => Promise.resolve({ hits: [], found: 0, page: 1, search_time_ms: 0 }),
         })
       }
       return Promise.resolve({
-        ok: true,
         json: () => Promise.resolve({ collections: [] }),
+        ok: true,
       })
     })
 
     render(
       <UnifiedSearchInput
         baseUrl="http://localhost:3000"
-        renderNoResults={customRenderNoResults}
         debounceMs={100}
+        renderNoResults={customRenderNoResults}
       />,
     )
 

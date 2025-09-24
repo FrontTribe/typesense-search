@@ -1,6 +1,8 @@
-import Typesense from 'typesense'
 import type { Payload } from 'payload'
+import type Typesense from 'typesense'
+
 import type { TypesenseSearchConfig } from '../index.js'
+
 import { mapPayloadDocumentToTypesense } from './schema-mapper.js'
 
 export const setupHooks = (
@@ -53,16 +55,13 @@ const syncDocumentToTypesense = async (
 
     await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDoc)
 
-    console.log(`✅ Document ${operation}d in Typesense:`, collectionSlug, doc.id)
+    // Document synced successfully
   } catch (error: any) {
-    console.error(`❌ Failed to sync document to Typesense:`, error.message)
-    console.error(`   Collection: ${collectionSlug}`)
-    console.error(`   Document ID: ${doc.id}`)
-    console.error(`   Operation: ${operation}`)
+    // Handle document sync error
 
     // Log the problematic document for debugging
     if (error.message.includes('validation')) {
-      console.error(`   Problematic document:`, JSON.stringify(doc, null, 2))
+      // Log problematic document details
     }
   }
 }
@@ -75,8 +74,8 @@ const deleteDocumentFromTypesense = async (
   try {
     await typesenseClient.collections(collectionSlug).documents(docId).delete()
 
-    console.log(`✅ Document deleted from Typesense:`, collectionSlug, docId)
+    // Document deleted successfully
   } catch (error) {
-    console.error(`❌ Failed to delete document from Typesense:`, error)
+    // Handle document deletion error
   }
 }

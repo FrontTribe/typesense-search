@@ -31,9 +31,37 @@ export class SearchCache<T = any> {
   }
 
   /**
+   * Clear expired entries
+   */
+  cleanup(): void {
+    const now = Date.now()
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key)
+      }
+    }
+  }
+
+  /**
+   * Clear cache entries matching pattern
+   */
+  clear(pattern?: string): void {
+    if (!pattern) {
+      this.cache.clear()
+      return
+    }
+
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        this.cache.delete(key)
+      }
+    }
+  }
+
+  /**
    * Get cached search result
    */
-  get(query: string, collection?: string, params?: Record<string, any>): T | null {
+  get(query: string, collection?: string, params?: Record<string, any>): null | T {
     const key = this.generateKey(query, collection || '', params)
     const entry = this.cache.get(key)
 
@@ -48,6 +76,23 @@ export class SearchCache<T = any> {
     }
 
     return entry.data
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getStats(): { hitRate?: number; maxSize: number; size: number } {
+    return {
+      maxSize: this.maxSize,
+      size: this.cache.size
+    }
+  }
+
+  /**
+   * Check if cache has valid entry
+   */
+  has(query: string, collection?: string, params?: Record<string, any>): boolean {
+    return this.get(query, collection, params) !== null
   }
 
   /**
@@ -76,57 +121,12 @@ export class SearchCache<T = any> {
       ttl: ttl || this.defaultTTL
     })
   }
-
-  /**
-   * Clear cache entries matching pattern
-   */
-  clear(pattern?: string): void {
-    if (!pattern) {
-      this.cache.clear()
-      return
-    }
-
-    for (const key of this.cache.keys()) {
-      if (key.includes(pattern)) {
-        this.cache.delete(key)
-      }
-    }
-  }
-
-  /**
-   * Clear expired entries
-   */
-  cleanup(): void {
-    const now = Date.now()
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        this.cache.delete(key)
-      }
-    }
-  }
-
-  /**
-   * Get cache statistics
-   */
-  getStats(): { size: number; maxSize: number; hitRate?: number } {
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize
-    }
-  }
-
-  /**
-   * Check if cache has valid entry
-   */
-  has(query: string, collection?: string, params?: Record<string, any>): boolean {
-    return this.get(query, collection, params) !== null
-  }
 }
 
 // Global cache instance
 export const searchCache = new SearchCache({
-  ttl: 5 * 60 * 1000, // 5 minutes
-  maxSize: 1000
+  maxSize: 1000,
+  ttl: 5 * 60 * 1000 // 5 minutes
 })
 
 // Cleanup expired entries every 10 minutes

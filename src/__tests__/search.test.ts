@@ -1,7 +1,8 @@
-import { describe, expect, test, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+
 import type { TypesenseSearchConfig } from '../index'
+
 import { createSearchEndpoints } from '../endpoints/search'
-import { createTypesenseClient } from '../lib/typesense-client'
 
 // Mock Typesense client
 const mockTypesenseClient = {
@@ -23,39 +24,39 @@ describe('Search Endpoints', () => {
 
   beforeEach(() => {
     pluginOptions = {
-      typesense: {
-        apiKey: 'test-key',
-        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
-      },
       collections: {
-        posts: {
-          enabled: true,
-          searchFields: ['title', 'content'],
-          facetFields: ['category', 'status'],
-          displayName: 'Blog Posts',
-          icon: '📝',
+        disabled: {
+          displayName: 'Disabled Collection',
+          enabled: false,
+          facetFields: [],
+          icon: '❌',
+          searchFields: ['title'],
         },
         portfolio: {
-          enabled: true,
-          searchFields: ['title', 'description'],
-          facetFields: ['status', 'featured'],
           displayName: 'Portfolio',
+          enabled: true,
+          facetFields: ['status', 'featured'],
           icon: '💼',
+          searchFields: ['title', 'description'],
         },
-        disabled: {
-          enabled: false,
-          searchFields: ['title'],
-          facetFields: [],
-          displayName: 'Disabled Collection',
-          icon: '❌',
+        posts: {
+          displayName: 'Blog Posts',
+          enabled: true,
+          facetFields: ['category', 'status'],
+          icon: '📝',
+          searchFields: ['title', 'content'],
         },
       },
       settings: {
         categorized: true,
       },
+      typesense: {
+        apiKey: 'test-key',
+        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
+      },
     }
 
-    searchEndpoints = createSearchEndpoints(mockTypesenseClient as any, pluginOptions)
+    searchEndpoints = createSearchEndpoints(mockTypesenseClient as Record<string, unknown>, pluginOptions)
   })
 
   afterEach(() => {
@@ -67,7 +68,7 @@ describe('Search Endpoints', () => {
       const collectionsEndpoint = searchEndpoints.find((ep) => ep.path === '/search/collections')
       expect(collectionsEndpoint).toBeDefined()
 
-      const mockRequest = {}
+      const mockRequest = {} as Record<string, unknown>
       const response = await collectionsEndpoint.handler(mockRequest)
       const data = await response.json()
 
@@ -76,13 +77,13 @@ describe('Search Endpoints', () => {
       expect(data).toHaveProperty('categorized', true)
       expect(data.collections).toHaveLength(2) // Only enabled collections
 
-      const postsCollection = data.collections.find((c: any) => c.slug === 'posts')
+      const postsCollection = data.collections.find((c: Record<string, unknown>) => c.slug === 'posts')
       expect(postsCollection).toEqual({
         slug: 'posts',
         displayName: 'Blog Posts',
+        facetFields: ['category', 'status'],
         icon: '📝',
         searchFields: ['title', 'content'],
-        facetFields: ['category', 'status'],
       })
     })
   })
@@ -90,14 +91,14 @@ describe('Search Endpoints', () => {
   describe('Universal Search Endpoint', () => {
     test('should perform search across all collections', async () => {
       const mockSearchResults = {
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 5,
       }
@@ -108,9 +109,9 @@ describe('Search Endpoints', () => {
       expect(universalSearchEndpoint).toBeDefined()
 
       const mockRequest = {
-        url: 'http://localhost:3000/api/search?q=test&per_page=10',
         params: {},
-        query: { q: 'test', per_page: '10' },
+        query: { per_page: '10', q: 'test' },
+        url: 'http://localhost:3000/api/search?q=test&per_page=10',
       }
       const response = await universalSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -125,9 +126,9 @@ describe('Search Endpoints', () => {
     test('should return error for missing query parameter', async () => {
       const universalSearchEndpoint = searchEndpoints.find((ep) => ep.path === '/search')
       const mockRequest = {
-        url: 'http://localhost:3000/api/search?per_page=10',
         params: {},
         query: { per_page: '10' },
+        url: 'http://localhost:3000/api/search?per_page=10',
       }
       const response = await universalSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -141,14 +142,14 @@ describe('Search Endpoints', () => {
   describe('Collection-Specific Search Endpoint', () => {
     test('should perform search on specific collection', async () => {
       const mockSearchResults = {
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 3,
       }
@@ -161,9 +162,9 @@ describe('Search Endpoints', () => {
       expect(collectionSearchEndpoint).toBeDefined()
 
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/posts?q=test&per_page=10',
         params: { collectionName: 'posts' },
-        query: { q: 'test', per_page: '10' },
+        query: { per_page: '10', q: 'test' },
+        url: 'http://localhost:3000/api/search/posts?q=test&per_page=10',
       }
       const response = await collectionSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -178,9 +179,9 @@ describe('Search Endpoints', () => {
         (ep) => ep.path === '/search/:collectionName',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/disabled?q=test',
         params: { collectionName: 'disabled' },
         query: { q: 'test' },
+        url: 'http://localhost:3000/api/search/disabled?q=test',
       }
       const response = await collectionSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -195,9 +196,9 @@ describe('Search Endpoints', () => {
         (ep) => ep.path === '/search/:collectionName',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/nonexistent?q=test',
         params: { collectionName: 'nonexistent' },
         query: { q: 'test' },
+        url: 'http://localhost:3000/api/search/nonexistent?q=test',
       }
       const response = await collectionSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -211,14 +212,14 @@ describe('Search Endpoints', () => {
   describe('Suggest Endpoint', () => {
     test('should return search suggestions', async () => {
       const mockSuggestResults = {
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 2,
       }
@@ -231,9 +232,9 @@ describe('Search Endpoints', () => {
       expect(suggestEndpoint).toBeDefined()
 
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/posts/suggest?q=test&limit=5',
         params: { collectionName: 'posts' },
-        query: { q: 'test', limit: '5' },
+        query: { limit: '5', q: 'test' },
+        url: 'http://localhost:3000/api/search/posts/suggest?q=test&limit=5',
       }
       const response = await suggestEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -248,9 +249,9 @@ describe('Search Endpoints', () => {
         (ep) => ep.path === '/search/:collectionName/suggest',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/disabled/suggest?q=test',
         params: { collectionName: 'disabled' },
         query: { q: 'test' },
+        url: 'http://localhost:3000/api/search/disabled/suggest?q=test',
       }
       const response = await suggestEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -265,9 +266,9 @@ describe('Search Endpoints', () => {
         (ep) => ep.path === '/search/:collectionName/suggest',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/posts/suggest?limit=5',
         params: { collectionName: 'posts' },
         query: { limit: '5' },
+        url: 'http://localhost:3000/api/search/posts/suggest?limit=5',
       }
       const response = await suggestEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -281,14 +282,14 @@ describe('Search Endpoints', () => {
   describe('Advanced Search Endpoint', () => {
     test('should handle POST request with advanced search parameters', async () => {
       const mockSearchResults = {
+        found: 1,
         hits: [
           {
-            document: { id: '1', title: 'Test Post', _collection: 'posts' },
+            document: { id: '1', _collection: 'posts', title: 'Test Post' },
             highlight: { title: { snippet: 'Test <mark>Post</mark>' } },
             text_match: 100,
           },
         ],
-        found: 1,
         page: 1,
         search_time_ms: 4,
       }
@@ -301,17 +302,17 @@ describe('Search Endpoints', () => {
       expect(advancedSearchEndpoint).toBeDefined()
 
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/posts',
+        json: vi.fn().mockResolvedValue({
+          filters: { status: 'published' },
+          page: 1,
+          per_page: 10,
+          q: 'test',
+          sort_by: 'createdAt:desc',
+        }),
         method: 'POST',
         params: { collectionName: 'posts' },
         query: {},
-        json: vi.fn().mockResolvedValue({
-          q: 'test',
-          page: 1,
-          per_page: 10,
-          sort_by: 'createdAt:desc',
-          filters: { status: 'published' },
-        }),
+        url: 'http://localhost:3000/api/search/posts',
       }
       const response = await advancedSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -326,11 +327,11 @@ describe('Search Endpoints', () => {
         (ep) => ep.method === 'post' && ep.path === '/search/:collectionName',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/disabled',
+        json: vi.fn().mockResolvedValue({ q: 'test' }),
         method: 'POST',
         params: { collectionName: 'disabled' },
         query: {},
-        json: vi.fn().mockResolvedValue({ q: 'test' }),
+        url: 'http://localhost:3000/api/search/disabled',
       }
       const response = await advancedSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -350,9 +351,9 @@ describe('Search Endpoints', () => {
 
       const universalSearchEndpoint = searchEndpoints.find((ep) => ep.path === '/search')
       const mockRequest = {
-        url: 'http://localhost:3000/api/search?q=test',
         params: {},
         query: { q: 'test' },
+        url: 'http://localhost:3000/api/search?q=test',
       }
       const response = await universalSearchEndpoint.handler(mockRequest)
       const data = await response.json()
@@ -367,11 +368,11 @@ describe('Search Endpoints', () => {
         (ep) => ep.method === 'post' && ep.path === '/search/:collectionName',
       )
       const mockRequest = {
-        url: 'http://localhost:3000/api/search/posts',
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
         method: 'POST',
         params: { collectionName: 'posts' },
         query: {},
-        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
+        url: 'http://localhost:3000/api/search/posts',
       }
       const response = await advancedSearchEndpoint.handler(mockRequest)
       const data = await response.json()

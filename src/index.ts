@@ -1,29 +1,15 @@
-import type { CollectionSlug, Config } from 'payload'
-import Typesense from 'typesense'
+import type { Config } from 'payload'
+import type Typesense from 'typesense'
 
-import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
 import { createSearchEndpoints } from './endpoints/search.js'
-import { createTypesenseClient } from './lib/typesense-client.js'
 import { initializeTypesenseCollections } from './lib/initialization.js'
 import { mapPayloadDocumentToTypesense } from './lib/schema-mapper.js'
+import { createTypesenseClient } from './lib/typesense-client.js'
 
 // Re-export components
 export * from './components/index.js'
 
 export type TypesenseSearchConfig = {
-  /**
-   * Typesense server configuration
-   */
-  typesense: {
-    nodes: Array<{
-      host: string
-      port: string | number
-      protocol: 'http' | 'https'
-    }>
-    apiKey: string
-    connectionTimeoutSeconds?: number
-  }
-
   /**
    * Collections to index in Typesense
    */
@@ -31,15 +17,17 @@ export type TypesenseSearchConfig = {
     Record<
       string,
       {
-        enabled: boolean
-        searchFields?: string[]
-        facetFields?: string[]
-        sortFields?: string[]
         displayName?: string
+        enabled: boolean
+        facetFields?: string[]
         icon?: string
+        searchFields?: string[]
+        sortFields?: string[]
       }
     >
   >
+
+  disabled?: boolean
 
   /**
    * Global plugin settings
@@ -47,11 +35,22 @@ export type TypesenseSearchConfig = {
   settings?: {
     autoSync?: boolean
     batchSize?: number
-    searchEndpoint?: string
     categorized?: boolean
+    searchEndpoint?: string
   }
 
-  disabled?: boolean
+  /**
+   * Typesense server configuration
+   */
+  typesense: {
+    apiKey: string
+    connectionTimeoutSeconds?: number
+    nodes: Array<{
+      host: string
+      port: number | string
+      protocol: 'http' | 'https'
+    }>
+  }
 }
 
 export const typesenseSearch =
@@ -157,7 +156,7 @@ const createCollectionIfNotExists = async (
   }
 
   await typesenseClient.collections().create(schema)
-  console.log(`✅ Created collection ${collectionSlug} in Typesense`)
+  // Collection created successfully
 }
 
 // Sync functions for hooks
@@ -174,7 +173,7 @@ const syncDocumentToTypesense = async (
       await typesenseClient.collections(collectionSlug).retrieve()
     } catch (collectionError: any) {
       if (collectionError.httpStatus === 404) {
-        console.log(`ℹ️  Collection ${collectionSlug} not found, creating it...`)
+        // Collection not found, creating it
         await createCollectionIfNotExists(typesenseClient, collectionSlug, config)
       } else {
         throw collectionError
@@ -184,16 +183,13 @@ const syncDocumentToTypesense = async (
     const typesenseDoc = mapPayloadDocumentToTypesense(doc, collectionSlug, config)
     await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDoc)
 
-    console.log(`✅ Document ${operation}d in Typesense:`, collectionSlug, doc.id)
+    // Document synced successfully
   } catch (error: any) {
-    console.error(`❌ Failed to sync document to Typesense:`, error.message)
-    console.error(`   Collection: ${collectionSlug}`)
-    console.error(`   Document ID: ${doc.id}`)
-    console.error(`   Operation: ${operation}`)
+    // Handle document sync error
 
     // Log the problematic document for debugging
     if (error.message.includes('validation')) {
-      console.error(`   Problematic document:`, JSON.stringify(doc, null, 2))
+      // Log problematic document details
     }
   }
 }
@@ -209,7 +205,7 @@ const deleteDocumentFromTypesense = async (
       await typesenseClient.collections(collectionSlug).retrieve()
     } catch (collectionError: any) {
       if (collectionError.httpStatus === 404) {
-        console.log(`ℹ️  Collection ${collectionSlug} not found in Typesense, skipping delete`)
+        // Collection not found, skipping delete
         return
       }
       throw collectionError
@@ -217,17 +213,13 @@ const deleteDocumentFromTypesense = async (
 
     // Try to delete the document
     await typesenseClient.collections(collectionSlug).documents(docId).delete()
-    console.log(`✅ Document deleted from Typesense:`, collectionSlug, docId)
+    // Document deleted successfully
   } catch (error: any) {
     // Handle specific error cases
     if (error.httpStatus === 404) {
-      console.log(
-        `ℹ️  Document ${docId} not found in Typesense collection ${collectionSlug}, already deleted`,
-      )
+      // Document not found, already deleted
     } else {
-      console.error(`❌ Failed to delete document from Typesense:`, error.message)
-      console.error(`   Collection: ${collectionSlug}`)
-      console.error(`   Document ID: ${docId}`)
+      // Handle document deletion error
     }
   }
 }

@@ -1,69 +1,72 @@
 'use client'
 
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import type { BaseSearchInputProps, SearchResponse, SearchResult } from '../lib/types.js'
+
 import styles from './HeadlessSearchInput.module.css'
-import type { SearchResult, SearchResponse, BaseSearchInputProps } from '../lib/types.js'
 
 export interface CollectionMetadata {
-  slug: string
   displayName: string
+  facetFields: string[]
   icon: string
   searchFields: string[]
-  facetFields: string[]
+  slug: string
 }
 
-export interface UnifiedSearchInputProps<T = any> extends BaseSearchInputProps<T> {
+export interface UnifiedSearchInputProps<T = Record<string, unknown>>
+  extends BaseSearchInputProps<T> {
   baseUrl: string
   collections?: string[]
-  placeholder?: string
   debounceMs?: number
-  minQueryLength?: number
-  perPage?: number
-  showLoading?: boolean
-  showSearchTime?: boolean
-  showResultCount?: boolean
-  inputClassName?: string
-  resultsClassName?: string
-  onSearch?: (query: string) => void
-  onResults?: (results: SearchResponse<T>) => void
-  onResultClick?: (result: SearchResult<T>) => void
-  onError?: (error: string) => void
-  renderResult?: (hit: SearchResult<T>, index: number) => React.ReactNode
-  renderNoResults?: (query: string) => React.ReactNode
-  renderLoading?: () => React.ReactNode
   /**
    * Include full document data in results
    */
   includeFullDocument?: boolean
+  inputClassName?: string
+  minQueryLength?: number
+  onError?: (error: string) => void
+  onResultClick?: (result: SearchResult<T>) => void
+  onResults?: (results: SearchResponse<T>) => void
+  onSearch?: (query: string) => void
+  perPage?: number
+  placeholder?: string
+  renderLoading?: () => React.ReactNode
+  renderNoResults?: (query: string) => React.ReactNode
+  renderResult?: (hit: SearchResult<T>, index: number) => React.ReactNode
+  resultsClassName?: string
+  showLoading?: boolean
+  showResultCount?: boolean
+  showSearchTime?: boolean
 }
 
-const UnifiedSearchInput = <T = any,>({
+const UnifiedSearchInput = <T = Record<string, unknown>,>({
   baseUrl,
-  collections,
-  placeholder = 'Search...',
+  collections: _collections,
   debounceMs = 300,
-  minQueryLength = 2,
-  perPage = 10,
-  showLoading = true,
-  showSearchTime = true,
-  showResultCount = true,
   inputClassName = '',
-  resultsClassName = '',
-  onSearch,
-  onResults,
-  onResultClick,
+  minQueryLength = 2,
   onError,
-  renderResult,
-  renderNoResults,
+  onResultClick,
+  onResults,
+  onSearch,
+  perPage = 10,
+  placeholder = 'Search...',
   renderLoading,
+  renderNoResults,
+  renderResult,
+  resultsClassName = '',
+  showLoading = true,
+  showResultCount = true,
+  showSearchTime = true,
 }: UnifiedSearchInputProps<T>): React.ReactElement => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResponse<T> | null>(null)
+  const [results, setResults] = useState<null | SearchResponse<T>>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<null | string>(null)
   const [collectionMetadata, setCollectionMetadata] = useState<CollectionMetadata[]>([])
-  const [isCategorized, setIsCategorized] = useState(false)
+  const [_isCategorized, _setIsCategorized] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -87,19 +90,13 @@ const UnifiedSearchInput = <T = any,>({
           const data = await response.json()
           setCollectionMetadata(data.collections || [])
           setIsCategorized(data.categorized || false)
-        } else {
-          console.error(
-            'Failed to fetch collection metadata:',
-            response.status,
-            response.statusText,
-          )
         }
       } catch (err) {
-        console.error('Failed to fetch collection metadata:', err)
+        // Silently handle error
       }
     }
 
-    fetchCollectionMetadata()
+    void fetchCollectionMetadata()
   }, [baseUrl])
 
   const performSearch = useCallback(
@@ -137,7 +134,7 @@ const UnifiedSearchInput = <T = any,>({
         setIsLoading(false)
       }
     },
-    [baseUrl, collections, perPage, minQueryLength, collectionMetadata],
+    [baseUrl, perPage, minQueryLength, onError],
   )
 
   // Debounced search effect
@@ -148,7 +145,7 @@ const UnifiedSearchInput = <T = any,>({
 
     if (query.length >= minQueryLength) {
       debounceRef.current = setTimeout(() => {
-        performSearch(query)
+        void performSearch(query)
         onSearchRef.current?.(query)
       }, debounceMs)
     } else {
@@ -201,7 +198,7 @@ const UnifiedSearchInput = <T = any,>({
   }
 
   const defaultRenderResult = (hit: SearchResult<T>, index: number) => {
-    const result = hit.document as any
+    const result = hit.document as Record<string, unknown>
     const highlight = Object.values(hit.highlight || {}).join(' ... ')
 
     // Find collection metadata - check both hit.collection and result._collection
@@ -219,20 +216,31 @@ const UnifiedSearchInput = <T = any,>({
 
     return (
       <div
-        key={`${collectionSlug}-${result.id || index}`}
         className={styles.searchResult}
+        key={`${String(collectionSlug)}-${String(result.id || index)}`}
         onClick={() => handleResultClick(hit)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleResultClick(hit)
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         <div className={styles.resultHeader}>
           <span className={styles.collectionIcon}>{collectionIcon}</span>
           <span className={styles.collectionName}>{collectionName}</span>
         </div>
         <h3 className={styles.resultTitle}>
-          {result.title || result.filename || result.name || `Document ${result.id || index}`}
+          {result.title ||
+            result.filename ||
+            result.name ||
+            `Document ${String(result.id || index)}`}
         </h3>
-        {result.shortDescription && (
+        {result.shortDescription ? (
           <p className={styles.resultDescription}>{result.shortDescription}</p>
-        )}
+        ) : null}
         {highlight && (
           <div className={styles.resultHighlight} dangerouslySetInnerHTML={{ __html: highlight }} />
         )}
@@ -248,7 +256,11 @@ const UnifiedSearchInput = <T = any,>({
 
   const defaultRenderNoResults = (query: string) => (
     <div className={styles.noResults}>
-      <div className={styles.noResultsIcon}>🔍</div>
+      <div className={styles.noResultsIcon}>
+        <span aria-label="search" role="img">
+          🔍
+        </span>
+      </div>
       <div className={styles.noResultsTitle}>No results found for "{query}"</div>
       <p className={styles.noResultsDescription}>
         Try different keywords or check your spelling. Search across all collections.
@@ -267,14 +279,15 @@ const UnifiedSearchInput = <T = any,>({
     <div className={styles.searchContainer}>
       <div className={styles.searchInputContainer}>
         <input
-          ref={inputRef}
-          type="text"
-          value={query}
+          aria-label="Search input"
+          autoComplete="off"
+          className={`${styles.searchInput} ${inputClassName}`}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`${styles.searchInput} ${inputClassName}`}
-          autoComplete="off"
+          ref={inputRef}
+          type="text"
+          value={query}
         />
         {isLoading && showLoading && (
           <div className={styles.inputLoading}>
@@ -284,7 +297,7 @@ const UnifiedSearchInput = <T = any,>({
       </div>
 
       {isOpen && (
-        <div ref={resultsRef} className={`${styles.resultsContainer} ${resultsClassName}`}>
+        <div className={`${styles.resultsContainer} ${resultsClassName}`} ref={resultsRef}>
           {isLoading ? (
             renderLoading ? (
               renderLoading()
@@ -293,7 +306,11 @@ const UnifiedSearchInput = <T = any,>({
             )
           ) : error ? (
             <div className={styles.error}>
-              <div className={styles.errorIcon}>⚠️</div>
+              <div className={styles.errorIcon}>
+                <span aria-label="warning" role="img">
+                  ⚠️
+                </span>
+              </div>
               <div className={styles.errorMessage}>{error}</div>
             </div>
           ) : results && results.hits.length > 0 ? (

@@ -1,9 +1,11 @@
-import Typesense from 'typesense'
 import type { Payload } from 'payload'
+import type Typesense from 'typesense'
+
 import type { TypesenseSearchConfig } from '../index.js'
+
+import { getValidationErrors, validateConfig } from './config-validation.js'
 import { mapCollectionToTypesenseSchema, mapPayloadDocumentToTypesense } from './schema-mapper.js'
 import { testTypesenseConnection } from './typesense-client.js'
-import { validateConfig, getValidationErrors } from './config-validation.js'
 
 export const initializeTypesenseCollections = async (
   payload: Payload,
@@ -13,21 +15,20 @@ export const initializeTypesenseCollections = async (
   // Validate configuration first
   const validation = validateConfig(pluginOptions)
   if (!validation.success) {
-    console.error('❌ Plugin configuration validation failed:')
-    console.error(getValidationErrors(validation.errors || []))
+    // Handle configuration validation error
     throw new Error('Invalid plugin configuration')
   }
 
-  console.log('✅ Plugin configuration validated successfully')
+  // Configuration validated successfully
 
   // Test Typesense connection first
   const isConnected = await testTypesenseConnection(typesenseClient)
   if (!isConnected) {
-    console.warn('⚠️ Typesense connection failed. Search functionality will not be available.')
+    // Typesense connection failed
     return
   }
 
-  console.log('🔍 Initializing Typesense collections...')
+  // Initialize Typesense collections
 
   if (pluginOptions.collections) {
     for (const [collectionSlug, config] of Object.entries(pluginOptions.collections)) {
@@ -35,13 +36,13 @@ export const initializeTypesenseCollections = async (
         try {
           await initializeCollection(payload, typesenseClient, collectionSlug, config)
         } catch (error) {
-          console.error(`❌ Failed to initialize collection ${collectionSlug}:`, error)
+          // Handle collection initialization error
         }
       }
     }
   }
 
-  console.log('✅ Typesense collections initialized successfully')
+  // Collections initialized successfully
 }
 
 const initializeCollection = async (
@@ -53,28 +54,25 @@ const initializeCollection = async (
   // Get the collection config from Payload
   const collection = payload.collections[collectionSlug]
   if (!collection) {
-    console.warn(`⚠️ Collection ${collectionSlug} not found in Payload`)
+    // Collection not found in Payload
     return
   }
 
   // Create Typesense schema
   const schema = mapCollectionToTypesenseSchema(collection, collectionSlug, config)
-  console.log(`🔍 Creating schema for ${collectionSlug}:`, JSON.stringify(schema, null, 2))
-  console.log(`🔍 Search fields from config:`, config?.searchFields)
-  console.log(`🔍 Facet fields from config:`, config?.facetFields)
+  // Create schema for collection
 
   try {
     // Check if collection exists
     await typesenseClient.collections(collectionSlug).retrieve()
-    console.log(`✅ Collection ${collectionSlug} already exists in Typesense`)
+    // Collection already exists
   } catch (error) {
     // Collection doesn't exist, create it
     try {
       await typesenseClient.collections().create(schema)
-      console.log(`✅ Created Typesense collection: ${collectionSlug}`)
+      // Collection created successfully
     } catch (createError) {
-      console.error(`❌ Failed to create collection ${collectionSlug}:`, createError)
-      console.error(`❌ Schema was:`, JSON.stringify(schema, null, 2))
+      // Handle collection creation error
       return
     }
   }
@@ -92,12 +90,12 @@ const syncExistingDocuments = async (
   try {
     const { docs } = await payload.find({
       collection: collectionSlug,
-      limit: 1000, // Adjust based on your needs
       depth: 0,
+      limit: 1000, // Adjust based on your needs
     })
 
     if (docs.length === 0) {
-      console.log(`ℹ️ No documents to sync for collection ${collectionSlug}`)
+      // No documents to sync
       return
     }
 
@@ -115,36 +113,30 @@ const syncExistingDocuments = async (
           .documents()
           .import(typesenseDocs, { action: 'upsert' })
 
-        console.log(`✅ Synced ${batch.length} documents to ${collectionSlug}`)
+        // Documents synced successfully
       } catch (batchError: any) {
-        console.error(`❌ Failed to sync batch for ${collectionSlug}:`, batchError.message)
+        // Handle batch sync error
 
         // Log detailed import results if available
         if (batchError.importResults) {
-          console.error('Import results:', batchError.importResults)
+          // Handle import results error
 
           // Try to sync documents individually to identify problematic ones
-          console.log('🔄 Attempting individual document sync...')
+          // Attempt individual document sync
           for (let j = 0; j < typesenseDocs.length; j++) {
             try {
               await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDocs[j])
-              console.log(`✅ Individual sync successful for document ${j + 1}`)
+              // Individual sync successful
             } catch (individualError: any) {
-              console.error(
-                `❌ Individual sync failed for document ${j + 1}:`,
-                individualError.message,
-              )
-              console.error('Problematic document:', typesenseDocs[j])
+              // Handle individual sync error
             }
           }
         }
       }
     }
 
-    console.log(
-      `✅ Synced ${docs.length} existing documents to Typesense collection: ${collectionSlug}`,
-    )
+    // Successfully synced documents
   } catch (error) {
-    console.error(`❌ Failed to sync existing documents for ${collectionSlug}:`, error)
+    // Handle document sync error
   }
 }

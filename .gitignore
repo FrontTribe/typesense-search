@@ -40,6 +40,9 @@ yarn-error.log*
 
 .env
 
+# development folder (for testing and development purposes only)
+/dev/
+
 /dev/media
 
 # Playwright
