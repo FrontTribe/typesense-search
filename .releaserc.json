@@ -12,60 +12,7 @@
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
-    [
-      "@semantic-release/release-notes-generator",
-      {
-        "preset": "conventionalcommits",
-        "presetConfig": {
-          "types": [
-            {
-              "type": "feat",
-              "section": "✨ Features"
-            },
-            {
-              "type": "fix",
-              "section": "🐛 Bug Fixes"
-            },
-            {
-              "type": "chore",
-              "section": "🔧 Maintenance"
-            },
-            {
-              "type": "docs",
-              "section": "📚 Documentation"
-            },
-            {
-              "type": "style",
-              "section": "🎨 Code Style"
-            },
-            {
-              "type": "refactor",
-              "section": "♻️ Code Refactoring"
-            },
-            {
-              "type": "perf",
-              "section": "⚡ Performance Improvements"
-            },
-            {
-              "type": "test",
-              "section": "🧪 Tests"
-            },
-            {
-              "type": "build",
-              "section": "🏗️ Build System"
-            },
-            {
-              "type": "ci",
-              "section": "👷 CI"
-            },
-            {
-              "type": "revert",
-              "section": "⏪ Reverts"
-            }
-          ]
-        }
-      }
-    ],
+    "@semantic-release/release-notes-generator",
     [
       "@semantic-release/changelog",
       {

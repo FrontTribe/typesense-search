@@ -6,6 +6,7 @@ settings:
 
 overrides:
   esbuild: ^0.25.0
+  conventional-changelog-writer: 6.0.0
 
 importers:
 
@@ -2545,11 +2546,6 @@ packages:
   conventional-changelog-writer@6.0.0:
     resolution: {integrity: sha512-8PyWTnn7zBIt9l4hj4UusFs1TyG+9Ulu1zlOAc72L7Sdv9Hsc8E86ot7htY3HXCVhXHB/NO0pVGvZpwsyJvFfw==}
     engines: {node: '>=14'}
-    hasBin: true
-
-  conventional-changelog-writer@7.0.1:
-    resolution: {integrity: sha512-Uo+R9neH3r/foIvQ0MKcsXkX642hdm9odUp7TqgFS7BsalTcjzRlIfWZrZR1gbxOozKucaKt5KAbjW8J8xRSmA==}
-    engines: {node: '>=16'}
     hasBin: true
 
   conventional-commits-filter@3.0.0:
@@ -7977,7 +7973,7 @@ snapshots:
   '@semantic-release/release-notes-generator@12.1.0(semantic-release@22.0.12(typescript@5.7.3))':
     dependencies:
       conventional-changelog-angular: 7.0.0
-      conventional-changelog-writer: 7.0.1
+      conventional-changelog-writer: 6.0.0
       conventional-commits-filter: 4.0.0
       conventional-commits-parser: 5.0.0
       debug: 4.4.3
@@ -9107,15 +9103,6 @@ snapshots:
       meow: 8.1.2
       semver: 6.3.1
       split: 1.0.1
-
-  conventional-changelog-writer@7.0.1:
-    dependencies:
-      conventional-commits-filter: 4.0.0
-      handlebars: 4.7.8
-      json-stringify-safe: 5.0.1
-      meow: 12.1.1
-      semver: 7.7.2
-      split2: 4.2.0
 
   conventional-commits-filter@3.0.0:
     dependencies:

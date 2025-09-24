@@ -160,7 +160,8 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "esbuild": "^0.25.0"
+      "esbuild": "^0.25.0",
+      "conventional-changelog-writer": "6.0.0"
     }
   },
   "registry": "https://registry.npmjs.org/",
