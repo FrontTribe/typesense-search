@@ -54,7 +54,10 @@
     "docs:dev:auto": "vitepress dev docs --open",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:serve": "vitepress serve docs"
+    "docs:serve": "vitepress serve docs",
+    "analyze": "pnpm build && npx bundle-analyzer dist/index.js",
+    "analyze:client": "pnpm build && npx bundle-analyzer dist/exports/client.js",
+    "analyze:rsc": "pnpm build && npx bundle-analyzer dist/exports/rsc.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -85,6 +88,7 @@
     "copyfiles": "2.4.1",
     "cross-env": "^7.0.3",
     "esbuild": "^0.25.10",
+    "bundle-analyzer": "^0.25.10",
     "eslint": "^9.23.0",
     "eslint-config-next": "15.4.4",
     "graphql": "^16.8.1",

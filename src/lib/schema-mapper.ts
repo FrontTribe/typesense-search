@@ -111,8 +111,8 @@ export const mapPayloadDocumentToTypesense = (
     // Handle array fields with dot notation (e.g., 'technologies.name', 'tags.tag')
     if (field.includes('.')) {
       const [arrayField, subField] = field.split('.', 2)
-      if (Array.isArray(doc[arrayField]) && doc[arrayField].length > 0) {
-        typesenseDoc[field] = doc[arrayField].map((item: any) => item[subField] || '').join(' ')
+      if (arrayField && subField && Array.isArray(doc[arrayField]) && doc[arrayField].length > 0) {
+        typesenseDoc[field] = doc[arrayField].map((item: any) => item?.[subField] || '').join(' ')
       } else {
         typesenseDoc[field] = ''
       }

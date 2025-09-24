@@ -78,7 +78,7 @@ export const createHealthCheckHandler = (
       const response: HealthCheckResponse = {
         cache: cacheStats,
         collections,
-        lastSync: lastSyncTime,
+        ...(lastSyncTime !== undefined && { lastSync: lastSyncTime }),
         status: isHealthy ? 'healthy' : 'unhealthy',
         typesense: typesenseInfo,
       }

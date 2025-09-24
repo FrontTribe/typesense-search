@@ -225,12 +225,20 @@ const createSearchHandler = (
           )
         }
 
-        return await searchAllCollections(typesenseClient, pluginOptions, q, {
+        const searchOptions: {
+          filters: Record<string, unknown>
+          page: number
+          per_page: number
+          sort_by?: string
+        } = {
           filters: {},
           page,
           per_page,
-          sort_by: sort_by as string | undefined,
-        })
+        }
+        if (sort_by && typeof sort_by === 'string') {
+          searchOptions.sort_by = sort_by
+        }
+        return await searchAllCollections(typesenseClient, pluginOptions, q, searchOptions)
       }
 
       // Validate collection is enabled
@@ -258,8 +266,8 @@ const createSearchHandler = (
       }
 
       // Add sorting
-      if (sort_by) {
-        searchParameters.sort_by = sort_by as string
+      if (sort_by && typeof sort_by === 'string') {
+        searchParameters.sort_by = sort_by
       }
 
       // Execute Typesense search

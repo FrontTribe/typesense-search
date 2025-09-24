@@ -171,6 +171,102 @@ We follow [Semantic Versioning](https://semver.org/):
 - [ ] Create release notes
 - [ ] Publish to npm
 
+### Pre-release Process
+
+We support pre-release versions for testing new features before stable releases:
+
+#### Creating Pre-releases
+
+**Beta Releases** (for testing stable features):
+
+```bash
+# Create a beta branch
+git checkout -b beta
+
+# Make your changes and commit with conventional commits
+git commit -m "feat: add new search feature"
+
+# Push to beta branch - this triggers beta release
+git push origin beta
+```
+
+**Alpha Releases** (for experimental features):
+
+```bash
+# Create an alpha branch
+git checkout -b alpha
+
+# Make your changes and commit with conventional commits
+git commit -m "feat: experimental vector search"
+
+# Push to alpha branch - this triggers alpha release
+git push origin alpha
+```
+
+#### Pre-release Versioning
+
+- **Beta releases**: `1.1.0-beta.1`, `1.1.0-beta.2`, etc.
+- **Alpha releases**: `1.1.0-alpha.1`, `1.1.0-alpha.2`, etc.
+
+#### Installing Pre-releases
+
+```bash
+# Install beta version
+pnpm add typesense-search-plugin@beta
+
+# Install alpha version
+pnpm add typesense-search-plugin@alpha
+
+# Install specific pre-release version
+pnpm add typesense-search-plugin@1.1.0-beta.1
+```
+
+#### Promoting Pre-releases
+
+When a pre-release is ready for stable release:
+
+1. **Merge to main branch**:
+
+   ```bash
+   git checkout main
+   git merge beta
+   git push origin main
+   ```
+
+2. **The stable version will be automatically released** based on the commits
+
+#### Pre-release Guidelines
+
+- **Beta releases** should be feature-complete and tested
+- **Alpha releases** can contain experimental or incomplete features
+- **Document breaking changes** in pre-release commit messages
+- **Test pre-releases** in development environments before production use
+- **Provide feedback** on pre-releases through GitHub issues
+
+#### Pre-release Testing
+
+Before creating a pre-release:
+
+```bash
+# Run full test suite
+pnpm test
+
+# Build and analyze bundle
+pnpm build
+pnpm analyze
+
+# Test in development environment
+cd dev
+pnpm dev
+```
+
+#### Pre-release Communication
+
+- **Announce pre-releases** in GitHub Discussions
+- **Document new features** in pre-release notes
+- **Request feedback** from the community
+- **Monitor issues** and feedback during pre-release period
+
 ## 🤝 Community Guidelines
 
 ### Code of Conduct

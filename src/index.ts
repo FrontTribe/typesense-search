@@ -71,7 +71,7 @@ export const typesenseSearch =
 
     // Apply hooks to individual collections
     if (pluginOptions.settings?.autoSync !== false && pluginOptions.collections) {
-      config.collections = config.collections?.map((collection) => {
+      config.collections = (config.collections || []).map((collection) => {
         const collectionConfig = pluginOptions.collections?.[collection.slug as any]
 
         if (collectionConfig?.enabled) {

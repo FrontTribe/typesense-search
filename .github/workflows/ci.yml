@@ -115,6 +115,27 @@ jobs:
       - name: Build package
         run: pnpm build
 
+      - name: Bundle size check
+        run: |
+          echo "📦 Bundle size analysis:"
+          echo "Main bundle: $(du -h dist/index.js | cut -f1)"
+          echo "Client bundle: $(du -h dist/exports/client.js | cut -f1)"
+          echo "RSC bundle: $(du -h dist/exports/rsc.js | cut -f1)"
+          echo ""
+          echo "📊 Total package size:"
+          du -sh dist/
+
+          # Check if any bundle exceeds 500KB (warning threshold)
+          if [ $(stat -c%s dist/index.js) -gt 512000 ]; then
+            echo "⚠️  Warning: Main bundle exceeds 500KB"
+          fi
+          if [ $(stat -c%s dist/exports/client.js) -gt 512000 ]; then
+            echo "⚠️  Warning: Client bundle exceeds 500KB"
+          fi
+          if [ $(stat -c%s dist/exports/rsc.js) -gt 512000 ]; then
+            echo "⚠️  Warning: RSC bundle exceeds 500KB"
+          fi
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

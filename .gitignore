@@ -53,3 +53,6 @@ yarn-error.log*
 
 /typesense-data/docs/.vitepress/cache/
 docs/.vitepress/dist/
+
+# AI Assistant Development Guide (local reference only)
+FEATURE_DEVELOPMENT_GUIDE.md

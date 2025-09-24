@@ -155,7 +155,7 @@ export const SearchExample: React.FC = () => {
         <h2 style={{ color: '#374151', marginBottom: '16px' }}>Basic Search</h2>
         <HeadlessSearchInput
           baseUrl="http://localhost:3000"
-          className={styles['headless-search-input']}
+          {...(styles['headless-search-input'] && { className: styles['headless-search-input'] })}
           collection="posts"
           onResultClick={handleResultClick}
           onSearch={handleSearch}
@@ -170,7 +170,7 @@ export const SearchExample: React.FC = () => {
         </h2>
         <HeadlessSearchInput
           baseUrl="http://localhost:3000"
-          className={styles['headless-search-input']}
+          {...(styles['headless-search-input'] && { className: styles['headless-search-input'] })}
           collection="posts"
           debounceMs={500}
           minQueryLength={3}
@@ -189,7 +189,7 @@ export const SearchExample: React.FC = () => {
         <h2 style={{ color: '#374151', marginBottom: '16px' }}>Media Search</h2>
         <HeadlessSearchInput
           baseUrl="http://localhost:3000"
-          className={styles['headless-search-input']}
+          {...(styles['headless-search-input'] && { className: styles['headless-search-input'] })}
           collection="media"
           onResultClick={(_result) => {
             // Handle media click
