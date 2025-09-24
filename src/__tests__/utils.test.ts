@@ -23,6 +23,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       content: 'This is test content',
       createdAt: new Date('2024-01-01').getTime(),
       status: 'published',
@@ -64,6 +65,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       content: 'This is rich text content',
       createdAt: new Date('2024-01-01').getTime(),
       title: 'Test Post',
@@ -94,6 +96,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       createdAt: new Date('2024-01-01').getTime(),
       'tags.tag': 'javascript typescript',
       'technologies.category': 'unknown',
@@ -121,6 +124,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       content: '',
       createdAt: new Date('2024-01-01').getTime(),
       description: '',
@@ -150,6 +154,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       content: '',
       createdAt: new Date('2024-01-01').getTime(),
       title: 'Test Post',
@@ -177,6 +182,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       categories: '',
       createdAt: new Date('2024-01-01').getTime(),
       'tags.tag': '',
@@ -252,6 +258,7 @@ describe('Schema Mapper', () => {
 
     expect(result).toEqual({
       id: '1',
+      slug: '',
       content: '',
       createdAt: new Date('2024-01-01').getTime(),
       description: '',

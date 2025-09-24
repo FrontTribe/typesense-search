@@ -2,6 +2,14 @@ import type { Config } from 'payload'
 
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
+// Mock CSS imports before importing the main module
+vi.mock('*.css', () => ({}))
+vi.mock('*.scss', () => ({}))
+vi.mock('*.module.css', () => ({}))
+vi.mock('*.module.scss', () => ({}))
+vi.mock('**/*.css', () => ({}))
+vi.mock('**/*.scss', () => ({}))
+
 import { typesenseSearch } from '../index'
 import { initializeTypesenseCollections } from '../lib/initialization'
 import { mapPayloadDocumentToTypesense } from '../lib/schema-mapper'

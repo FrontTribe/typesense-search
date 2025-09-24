@@ -23,5 +23,20 @@ export default defineConfig(() => {
       setupFiles: ['./src/__tests__/setup.ts'],
       globals: true,
     },
+    transform: {
+      '^.+\\.css$': 'jest-transform-stub',
+    },
+    css: {
+      modules: {
+        classNameStrategy: 'non-scoped',
+      },
+    },
+    assetsInclude: ['**/*.css'],
+    define: {
+      'import.meta.vitest': 'undefined',
+    },
+    esbuild: {
+      target: 'node14',
+    },
   }
 })

@@ -1,5 +1,13 @@
 import '@testing-library/jest-dom'
 
+// Mock CSS imports
+vi.mock('*.css', () => ({}))
+vi.mock('*.scss', () => ({}))
+vi.mock('*.module.css', () => ({}))
+vi.mock('*.module.scss', () => ({}))
+vi.mock('**/*.css', () => ({}))
+vi.mock('**/*.scss', () => ({}))
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation((query) => ({
