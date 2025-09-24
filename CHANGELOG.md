@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9](https://github.com/fronttribe/typesense-search/compare/v1.0.8...v1.0.9) (2025-09-24)
+
+
+### Bug Fixes
+
+* resolve duplicate asset names in GitHub release uploads ([606dc63](https://github.com/fronttribe/typesense-search/commit/606dc63b94eddb7e703ecc87b331950d7e85219b))
+
 ## [1.0.8](https://github.com/fronttribe/typesense-search/compare/v1.0.7...v1.0.8) (2025-09-24)
 
 
