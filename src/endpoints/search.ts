@@ -183,9 +183,19 @@ const createSearchHandler = (
 
       // Extract search parameters
       const q = String((query as Record<string, unknown>)?.q || '')
-      const page = parseInt(String((query as Record<string, unknown>)?.page) || '1', 10)
-      const per_page = parseInt(String((query as Record<string, unknown>)?.per_page) || '10', 10)
+      const pageParam = (query as Record<string, unknown>)?.page
+      const perPageParam = (query as Record<string, unknown>)?.per_page
+      const page = pageParam ? parseInt(String(pageParam), 10) : 1
+      const per_page = perPageParam ? parseInt(String(perPageParam), 10) : 10
       const sort_by = (query as Record<string, unknown>)?.sort_by
+
+      // Validate parsed numbers
+      if (isNaN(page) || page < 1) {
+        return Response.json({ error: 'Invalid page parameter' }, { status: 400 })
+      }
+      if (isNaN(per_page) || per_page < 1 || per_page > 250) {
+        return Response.json({ error: 'Invalid per_page parameter' }, { status: 400 })
+      }
 
       // Process search request
 
