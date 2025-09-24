@@ -81,7 +81,7 @@ export const typesenseSearch =
               ...collection.hooks,
               afterChange: [
                 ...(collection.hooks?.afterChange || []),
-                async ({ doc, operation, req }) => {
+                async ({ doc, operation, req: _req }) => {
                   await syncDocumentToTypesense(
                     typesenseClient,
                     collection.slug,
@@ -93,7 +93,7 @@ export const typesenseSearch =
               ],
               afterDelete: [
                 ...(collection.hooks?.afterDelete || []),
-                async ({ doc, req }) => {
+                async ({ doc, req: _req }) => {
                   await deleteDocumentFromTypesense(typesenseClient, collection.slug, doc.id)
                 },
               ],

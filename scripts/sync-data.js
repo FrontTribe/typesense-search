@@ -208,8 +208,8 @@ const createCollectionSchema = (collectionSlug, config) => {
   const facetFields = config?.facetFields || []
 
   // Base fields that every collection should have
+  // Note: 'id' field is automatically created by Typesense, so we don't include it
   const baseFields = [
-    { name: 'id', type: 'string' },
     { name: 'createdAt', type: 'int64' },
     { name: 'updatedAt', type: 'int64' },
   ]

@@ -1,4 +1,4 @@
-import type { Collection, CollectionConfig } from 'payload'
+import type { Collection } from 'payload'
 
 import type { TypesenseSearchConfig } from '../index.js'
 
@@ -40,8 +40,8 @@ export const mapCollectionToTypesenseSchema = (
   // Map schema for collection
 
   // Base fields that every collection should have
+  // Note: 'id' field is automatically created by Typesense, so we don't include it
   const baseFields = [
-    { name: 'id', type: 'string' as const },
     { name: 'slug', type: 'string' as const }, // Always include slug for navigation
     { name: 'createdAt', type: 'int64' as const },
     { name: 'updatedAt', type: 'int64' as const },

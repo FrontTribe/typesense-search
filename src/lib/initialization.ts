@@ -3,7 +3,7 @@ import type Typesense from 'typesense'
 
 import type { TypesenseSearchConfig } from '../index.js'
 
-import { getValidationErrors, validateConfig } from './config-validation.js'
+import { validateConfig } from './config-validation.js'
 import { mapCollectionToTypesenseSchema, mapPayloadDocumentToTypesense } from './schema-mapper.js'
 import { testTypesenseConnection } from './typesense-client.js'
 
@@ -35,7 +35,7 @@ export const initializeTypesenseCollections = async (
       if (config?.enabled) {
         try {
           await initializeCollection(payload, typesenseClient, collectionSlug, config)
-        } catch (error) {
+        } catch (_error) {
           // Handle collection initialization error
         }
       }
@@ -66,12 +66,12 @@ const initializeCollection = async (
     // Check if collection exists
     await typesenseClient.collections(collectionSlug).retrieve()
     // Collection already exists
-  } catch (error) {
+  } catch (_error) {
     // Collection doesn't exist, create it
     try {
       await typesenseClient.collections().create(schema)
       // Collection created successfully
-    } catch (createError) {
+    } catch (_createError) {
       // Handle collection creation error
       return
     }
@@ -108,7 +108,7 @@ const syncExistingDocuments = async (
       )
 
       try {
-        const importResult = await typesenseClient
+        const _importResult = await typesenseClient
           .collections(collectionSlug)
           .documents()
           .import(typesenseDocs, { action: 'upsert' })
@@ -127,7 +127,7 @@ const syncExistingDocuments = async (
             try {
               await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDocs[j])
               // Individual sync successful
-            } catch (individualError: any) {
+            } catch (_individualError: any) {
               // Handle individual sync error
             }
           }
@@ -136,7 +136,7 @@ const syncExistingDocuments = async (
     }
 
     // Successfully synced documents
-  } catch (error) {
+  } catch (_error) {
     // Handle document sync error
   }
 }

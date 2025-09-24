@@ -191,7 +191,7 @@ export const SearchExample: React.FC = () => {
           baseUrl="http://localhost:3000"
           className={styles['headless-search-input']}
           collection="media"
-          onResultClick={(result) => {
+          onResultClick={(_result) => {
             // Handle media click
           }}
           placeholder="Search media files..."

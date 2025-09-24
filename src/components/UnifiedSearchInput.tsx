@@ -91,7 +91,7 @@ const UnifiedSearchInput = <T = Record<string, unknown>,>({
           setCollectionMetadata(data.collections || [])
           _setIsCategorized(data.categorized || false)
         }
-      } catch (err) {
+      } catch (_err) {
         // Silently handle error
       }
     }
@@ -125,8 +125,8 @@ const UnifiedSearchInput = <T = Record<string, unknown>,>({
 
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Search failed'
+      } catch (_err) {
+        const errorMessage = _err instanceof Error ? _err.message : 'Search failed'
         setError(errorMessage)
         setResults(null)
         onError?.(errorMessage)

@@ -72,12 +72,12 @@ const searchAllCollections = async (
               icon: config?.icon || '📄',
             })) || [],
         }
-      } catch (error) {
+      } catch (_error) {
         // Handle search error
         return {
           collection: collectionName,
           displayName: config?.displayName || collectionName,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
           found: 0,
           hits: [],
           icon: config?.icon || '📄',
@@ -200,7 +200,7 @@ const createSearchHandler = (
       // Process search request
 
       // Validate search parameters
-        const searchParams = { page, per_page, q, sort_by: sort_by as string | undefined }
+      const searchParams = { page, per_page, q, sort_by: sort_by as string | undefined }
       const validation = validateSearchParams(searchParams)
       if (!validation.success) {
         return Response.json(
@@ -244,13 +244,15 @@ const createSearchHandler = (
 
       const searchParameters: any = {
         highlight_full_fields:
-          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
+          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+          'title,content',
         num_typos: 0,
         page: Number(page),
         per_page: Number(per_page),
-        q: q as string,
+        q: String(q),
         query_by:
-          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
+          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+          'title,content',
         snippet_threshold: 30,
         typo_tokens_threshold: 1,
       }
@@ -281,11 +283,11 @@ const createSearchHandler = (
       searchCache.set(q, searchResults, collectionNameStr, cacheOptions)
 
       return Response.json(searchResults)
-    } catch (error) {
+    } catch (_error) {
       // Handle search error
       return Response.json(
         {
-          details: error instanceof Error ? error.message : 'Unknown error',
+          details: _error instanceof Error ? _error.message : 'Unknown error',
           error: 'Search handler failed',
         },
         { status: 500 },
@@ -315,7 +317,7 @@ const createAdvancedSearchHandler = (
         .search(body)
 
       return Response.json(searchResults)
-    } catch (error) {
+    } catch (_error) {
       // Handle advanced search error
       return Response.json({ error: 'Advanced search failed' }, { status: 500 })
     }
@@ -351,16 +353,18 @@ const createSuggestHandler = (
         .documents()
         .search({
           highlight_full_fields:
-            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
+            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+            'title,content',
           per_page: Number(limit),
           q,
           query_by:
-            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
+            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+            'title,content',
           snippet_threshold: 30,
         })
 
       return Response.json(suggestResults)
-    } catch (error) {
+    } catch (_error) {
       // Handle suggest error
       return Response.json({ error: 'Suggest failed' }, { status: 500 })
     }
@@ -384,7 +388,7 @@ const createCollectionsHandler = (pluginOptions: TypesenseSearchConfig): Payload
         categorized: pluginOptions.settings?.categorized || false,
         collections,
       })
-    } catch (error) {
+    } catch (_error) {
       // Handle collections error
       return Response.json({ error: 'Failed to get collections' }, { status: 500 })
     }

@@ -17,7 +17,7 @@ const testTypesenseConnection = async (typesenseClient: Typesense.Client): Promi
   try {
     const health = await typesenseClient.health.retrieve()
     return health.ok === true
-  } catch (error) {
+  } catch (_error) {
     // Handle health check error
     return false
   }
@@ -30,7 +30,7 @@ const getCollectionInfo = async (typesenseClient: Typesense.Client): Promise<str
   try {
     const collections = await typesenseClient.collections().retrieve()
     return collections.map((col) => col.name)
-  } catch (error) {
+  } catch (_error) {
     // Handle collections retrieval error
     return []
   }
@@ -103,12 +103,12 @@ export const createHealthCheckHandler = (
         timestamp: new Date().toISOString(),
         version: '1.0.6', // Plugin version
       })
-    } catch (error) {
+    } catch (_error) {
       // Handle health check error
 
       const errorResponse: HealthCheckResponse = {
         cache: getCacheStats(),
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
         status: 'unhealthy',
       }
 
@@ -143,7 +143,7 @@ export const createDetailedHealthCheckHandler = (
             fields: col.fields?.length || 0,
             numDocuments: col.num_documents,
           }))
-        } catch (error) {
+        } catch (_error) {
           // Handle detailed collection info error
         }
       }
@@ -197,12 +197,12 @@ export const createDetailedHealthCheckHandler = (
       }
 
       return Response.json(response)
-    } catch (error) {
+    } catch (_error) {
       // Handle detailed health check error
 
       const errorResponse = {
         cache: getCacheStats(),
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
         version: '1.0.6',

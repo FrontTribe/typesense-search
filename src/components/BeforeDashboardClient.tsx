@@ -48,7 +48,7 @@ export const BeforeDashboardClient = () => {
       } else {
         setSearchResults(null)
       }
-    } catch (error) {
+    } catch (_error) {
       setSearchResults(null)
     } finally {
       setIsSearching(false)

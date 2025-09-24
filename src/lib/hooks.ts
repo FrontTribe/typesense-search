@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+// import type { Payload } from 'payload'
 import type Typesense from 'typesense'
 
 import type { TypesenseSearchConfig } from '../index.js'
@@ -20,7 +20,7 @@ export const setupHooks = (
           ...hooks.afterChange,
           [collectionSlug]: [
             ...(hooks.afterChange?.[collectionSlug] || []),
-            async ({ doc, operation, req }: { doc: any; operation: any; req: any }) => {
+            async ({ doc, operation, req: _req }: { doc: any; operation: any; req: any }) => {
               await syncDocumentToTypesense(typesenseClient, collectionSlug, doc, operation, config)
             },
           ],
@@ -31,7 +31,7 @@ export const setupHooks = (
           ...hooks.afterDelete,
           [collectionSlug]: [
             ...(hooks.afterDelete?.[collectionSlug] || []),
-            async ({ doc, req }: { doc: any; req: any }) => {
+            async ({ doc, req: _req }: { doc: any; req: any }) => {
               await deleteDocumentFromTypesense(typesenseClient, collectionSlug, doc.id)
             },
           ],
@@ -75,7 +75,7 @@ const deleteDocumentFromTypesense = async (
     await typesenseClient.collections(collectionSlug).documents(docId).delete()
 
     // Document deleted successfully
-  } catch (error) {
+  } catch (_error) {
     // Handle document deletion error
   }
 }

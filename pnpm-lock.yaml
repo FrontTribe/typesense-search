@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      node-fetch:
+        specifier: ^3.3.2
+        version: 3.3.2
       typesense:
         specifier: ^1.8.2
         version: 1.8.2(@babel/runtime@7.28.4)
