@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 // Mock config for testing
 const config = {
+  admin: {
+    user: 'users',
+  },
   collections: [
     {
       slug: 'posts',
@@ -21,25 +24,22 @@ const config = {
       ],
     },
   ],
-  endpoints: [],
-  plugins: [],
-  secret: 'test-secret-key',
+  cors: ['http://localhost:3000'],
+  csrf: ['http://localhost:3000'],
   db: {
     adapter: 'memory',
   },
-  admin: {
-    user: 'users',
-  },
+  endpoints: [],
   globals: [],
+  plugins: [],
+  secret: 'test-secret-key',
+  typescript: {
+    outputFile: './payload-types.ts',
+  },
   upload: {
     limits: {
       fileSize: 5000000,
     },
-  },
-  cors: ['http://localhost:3000'],
-  csrf: ['http://localhost:3000'],
-  typescript: {
-    outputFile: './payload-types.ts',
   },
 } as Record<string, unknown>
 
