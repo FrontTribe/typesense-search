@@ -137,9 +137,9 @@ export const BeforeDashboardClient = () => {
                   }}
                 >
                   <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                    {hit.document?.title ||
-                      hit.document?.filename ||
-                      `Document ${hit.document?.id || index}`}
+                    {String(hit.document?.title) ||
+                      String(hit.document?.filename) ||
+                      `Document ${String(hit.document?.id) || index}`}
                   </div>
                   {hit.highlight && (
                     <div
@@ -150,9 +150,9 @@ export const BeforeDashboardClient = () => {
                     />
                   )}
                   <div style={{ color: '#999', fontSize: '12px', marginTop: '5px' }}>
-                    ID: {hit.document?.id || 'Unknown'} | Updated:{' '}
+                    ID: {String(hit.document?.id) || 'Unknown'} | Updated:{' '}
                     {hit.document?.updatedAt
-                      ? new Date(hit.document.updatedAt).toLocaleDateString()
+                      ? new Date(String(hit.document.updatedAt)).toLocaleDateString()
                       : 'Unknown'}
                   </div>
                 </div>

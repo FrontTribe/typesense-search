@@ -178,18 +178,19 @@ const createSearchHandler = (
     try {
       // Extract query parameters from the request
       const { params, query } = request
-      const { collectionName } = params || {}
+      const { collectionName } = (params as Record<string, unknown>) || {}
+      const collectionNameStr = String(collectionName || '')
 
       // Extract search parameters
-      const q = query?.q || ''
-      const page = parseInt(query?.page || '1', 10)
-      const per_page = parseInt(query?.per_page || '10', 10)
-      const sort_by = query?.sort_by
+      const q = String((query as Record<string, unknown>)?.q || '')
+      const page = parseInt(String((query as Record<string, unknown>)?.page) || '1', 10)
+      const per_page = parseInt(String((query as Record<string, unknown>)?.per_page) || '10', 10)
+      const sort_by = (query as Record<string, unknown>)?.sort_by
 
       // Process search request
 
       // Validate search parameters
-      const searchParams = { page, per_page, q, sort_by }
+        const searchParams = { page, per_page, q, sort_by: sort_by as string | undefined }
       const validation = validateSearchParams(searchParams)
       if (!validation.success) {
         return Response.json(
@@ -218,12 +219,12 @@ const createSearchHandler = (
           filters: {},
           page,
           per_page,
-          sort_by,
+          sort_by: sort_by as string | undefined,
         })
       }
 
       // Validate collection is enabled
-      if (!pluginOptions.collections?.[collectionName]?.enabled) {
+      if (!pluginOptions.collections?.[collectionNameStr]?.enabled) {
         return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
       }
 
@@ -233,13 +234,13 @@ const createSearchHandler = (
 
       const searchParameters: any = {
         highlight_full_fields:
-          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
+          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
         num_typos: 0,
         page: Number(page),
         per_page: Number(per_page),
         q: q as string,
         query_by:
-          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
+          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
         snippet_threshold: 30,
         typo_tokens_threshold: 1,
       }
@@ -253,21 +254,21 @@ const createSearchHandler = (
 
       // Check cache first
       const cacheOptions = { collection: collectionName, page, per_page, sort_by }
-      const cachedResult = searchCache.get(q, collectionName, cacheOptions)
+      const cachedResult = searchCache.get(q, collectionNameStr, cacheOptions)
       if (cachedResult) {
         // Return cached result
         return Response.json(cachedResult)
       }
 
       const searchResults = await typesenseClient
-        .collections(collectionName)
+        .collections(collectionNameStr)
         .documents()
         .search(searchParameters)
 
       // Process search results
 
       // Cache the result
-      searchCache.set(q, searchResults, collectionName, cacheOptions)
+      searchCache.set(q, searchResults, collectionNameStr, cacheOptions)
 
       return Response.json(searchResults)
     } catch (error) {
@@ -290,15 +291,16 @@ const createAdvancedSearchHandler = (
   return async (request: any) => {
     const { params, req } = request
     const { collectionName } = params || {}
+    const collectionNameStr = String(collectionName || '')
     const body = (await req?.json?.()) || {}
 
-    if (!pluginOptions.collections?.[collectionName]?.enabled) {
+    if (!pluginOptions.collections?.[collectionNameStr]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
     }
 
     try {
       const searchResults = await typesenseClient
-        .collections(collectionName)
+        .collections(collectionNameStr)
         .documents()
         .search(body)
 
@@ -319,12 +321,13 @@ const createSuggestHandler = (
     const url = new URL(request.url)
     const pathParts = url.pathname.split('/')
     const collectionName = pathParts[pathParts.indexOf('search') + 1]
+    const collectionNameStr = String(collectionName || '')
 
     // Extract query parameters
     const q = url.searchParams.get('q')
     const limit = url.searchParams.get('limit') || '5'
 
-    if (!collectionName || !pluginOptions.collections?.[collectionName as any]?.enabled) {
+    if (!collectionName || !pluginOptions.collections?.[collectionNameStr]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
     }
 
@@ -334,15 +337,15 @@ const createSuggestHandler = (
 
     try {
       const suggestResults = await typesenseClient
-        .collections(collectionName)
+        .collections(collectionNameStr)
         .documents()
         .search({
           highlight_full_fields:
-            pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
+            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
           per_page: Number(limit),
           q,
           query_by:
-            pluginOptions.collections?.[collectionName]?.searchFields?.join(',') || 'title,content',
+            pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') || 'title,content',
           snippet_threshold: 30,
         })
 

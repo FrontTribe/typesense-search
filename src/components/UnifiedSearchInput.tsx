@@ -89,7 +89,7 @@ const UnifiedSearchInput = <T = Record<string, unknown>,>({
         if (response.ok) {
           const data = await response.json()
           setCollectionMetadata(data.collections || [])
-          setIsCategorized(data.categorized || false)
+          _setIsCategorized(data.categorized || false)
         }
       } catch (err) {
         // Silently handle error
@@ -211,7 +211,7 @@ const UnifiedSearchInput = <T = Record<string, unknown>,>({
       hit.displayName ||
       collectionMeta?.displayName ||
       (collectionSlug && collectionSlug !== 'unknown'
-        ? collectionSlug.charAt(0).toUpperCase() + collectionSlug.slice(1)
+        ? String(collectionSlug).charAt(0).toUpperCase() + String(collectionSlug).slice(1)
         : 'Unknown Collection')
 
     return (
@@ -233,21 +233,21 @@ const UnifiedSearchInput = <T = Record<string, unknown>,>({
           <span className={styles.collectionName}>{collectionName}</span>
         </div>
         <h3 className={styles.resultTitle}>
-          {result.title ||
-            result.filename ||
-            result.name ||
+          {String(result.title) ||
+            String(result.filename) ||
+            String(result.name) ||
             `Document ${String(result.id || index)}`}
         </h3>
         {result.shortDescription ? (
-          <p className={styles.resultDescription}>{result.shortDescription}</p>
+          <p className={styles.resultDescription}>{String(result.shortDescription)}</p>
         ) : null}
         {highlight && (
           <div className={styles.resultHighlight} dangerouslySetInnerHTML={{ __html: highlight }} />
         )}
         <div className={styles.resultMeta}>
-          <span>ID: {result.id || 'N/A'}</span>
+          <span>ID: {String(result.id) || 'N/A'}</span>
           <span>
-            Updated: {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'N/A'}
+            Updated: {result.updatedAt ? new Date(String(result.updatedAt)).toLocaleDateString() : 'N/A'}
           </span>
         </div>
       </div>
