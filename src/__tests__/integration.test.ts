@@ -24,6 +24,23 @@ const config = {
   endpoints: [],
   plugins: [],
   secret: 'test-secret-key',
+  db: {
+    adapter: 'memory',
+  },
+  admin: {
+    user: 'users',
+  },
+  globals: [],
+  upload: {
+    limits: {
+      fileSize: 5000000,
+    },
+  },
+  cors: ['http://localhost:3000'],
+  csrf: ['http://localhost:3000'],
+  typescript: {
+    outputFile: './payload-types.ts',
+  },
 } as Record<string, unknown>
 
 // Mock Typesense client

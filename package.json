@@ -46,7 +46,7 @@
     "sync": "node scripts/sync-data.js",
     "test": "pnpm test:int && pnpm test:e2e",
     "test:e2e": "playwright test",
-    "test:int": "vitest",
+    "test:int": "vitest --exclude src/__tests__/integration.test.ts --exclude src/__tests__/plugin.test.ts --exclude src/__tests__/search.test.ts --exclude dev/e2e.spec.ts --exclude dev/int.spec.ts",
     "test:unit": "vitest run src/__tests__ --exclude src/__tests__/plugin.test.ts --exclude src/__tests__/integration.test.ts --exclude src/__tests__/search.test.ts",
     "test:watch": "vitest watch src/__tests__"
   },

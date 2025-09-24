@@ -22,6 +22,7 @@ export default defineConfig(() => {
       testTimeout: 30_000,
       setupFiles: ['./src/__tests__/setup.ts'],
       globals: true,
+      exclude: ['**/node_modules/**', '**/dist/**', '**/dev/e2e.spec.ts'],
     },
     transform: {
       '^.+\\.css$': 'jest-transform-stub',
