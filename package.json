@@ -48,7 +48,13 @@
     "test:e2e": "playwright test",
     "test:int": "vitest --exclude src/__tests__/integration.test.ts --exclude src/__tests__/plugin.test.ts --exclude src/__tests__/search.test.ts --exclude dev/e2e.spec.ts --exclude dev/int.spec.ts",
     "test:unit": "vitest run src/__tests__ --exclude src/__tests__/plugin.test.ts --exclude src/__tests__/integration.test.ts --exclude src/__tests__/search.test.ts",
-    "test:watch": "vitest watch src/__tests__"
+    "test:watch": "vitest watch src/__tests__",
+    "docs:dev": "vitepress dev docs",
+    "docs:dev:open": "vitepress dev docs --open",
+    "docs:dev:auto": "vitepress dev docs --open",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:serve": "vitepress serve docs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -97,6 +103,7 @@
     "sort-package-json": "^2.10.0",
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "^5.1.4",
+    "vitepress": "^1.6.4",
     "vitest": "^3.1.2"
   },
   "peerDependencies": {
