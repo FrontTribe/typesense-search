@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typesense Search Plugin for Payload CMS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .feature h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .code-block pre {
+            margin: 0;
+        }
+        .cta {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+        .cta a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .cta a:hover {
+            background: #5a67d8;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Typesense Search Plugin</h1>
+        <p>Lightning-fast search for Payload CMS powered by Typesense</p>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>⚡ Lightning Fast</h3>
+            <p>Sub-millisecond search response times powered by Typesense</p>
+        </div>
+        <div class="feature">
+            <h3>🎯 Accurate Results</h3>
+            <p>Precise matching with configurable typo tolerance</p>
+        </div>
+        <div class="feature">
+            <h3>🔍 Universal Search</h3>
+            <p>Search across all collections simultaneously with unified results</p>
+        </div>
+        <div class="feature">
+            <h3>📱 Responsive Design</h3>
+            <p>Mobile-first design that works on all devices</p>
+        </div>
+        <div class="feature">
+            <h3>🔄 Real-time Sync</h3>
+            <p>Automatic synchronization with Payload CMS changes</p>
+        </div>
+        <div class="feature">
+            <h3>🛡️ Production Ready</h3>
+            <p>Optimized for production with error handling and performance monitoring</p>
+        </div>
+    </div>
+
+    <h2>Quick Start</h2>
+    <div class="code-block">
+        <pre><code>// 1. Install the plugin
+pnpm add typesense-search-plugin
+
+// 2. Add to your Payload config
+import { typesenseSearch } from 'typesense-search-plugin'
+
+export default buildConfig({
+  plugins: [
+    typesenseSearch({
+      typesense: {
+        apiKey: 'xyz',
+        nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
+      },
+      collections: {
+        posts: {
+          enabled: true,
+          searchFields: ['title', 'content'],
+          facetFields: ['category', 'status'],
+          displayName: 'Blog Posts',
+          icon: '📝'
+        }
+      }
+    })
+  ]
+})</code></pre>
+    </div>
+
+    <div class="cta">
+        <h3>Ready to get started?</h3>
+        <a href="https://github.com/fronttribe/typesense-search">View on GitHub</a>
+        <a href="https://www.npmjs.com/package/typesense-search-plugin">Install from NPM</a>
+    </div>
+
+    <div class="footer">
+        <p>Built with ❤️ by <a href="https://fronttribe.com">Front Tribe</a></p>
+        <p><a href="https://github.com/fronttribe/typesense-search/blob/main/README.md">Full Documentation</a> | <a href="https://github.com/fronttribe/typesense-search/issues">Report Issues</a></p>
+    </div>
+</body>
+</html>

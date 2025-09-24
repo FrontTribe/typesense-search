@@ -52,6 +52,9 @@ jobs:
 
           # Copy README as index
           cp README.md docs/index.md
+          
+          # Copy the root index.html to docs
+          cp index.html docs/
 
           # Create additional documentation pages
           cat > docs/installation.md << 'EOF'
