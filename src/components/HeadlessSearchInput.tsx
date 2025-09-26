@@ -174,7 +174,7 @@ const HeadlessSearchInput = <T = Record<string, unknown>>({
         clearTimeout(debounceRef.current)
       }
     }
-  }, [query, debounceMs, minQueryLength, performSearch, results])
+  }, [query, debounceMs, minQueryLength, performSearch])
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
