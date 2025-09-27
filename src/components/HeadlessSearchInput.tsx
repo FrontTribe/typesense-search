@@ -174,7 +174,8 @@ const HeadlessSearchInput = <T = Record<string, unknown>>({
         clearTimeout(debounceRef.current)
       }
     }
-  }, [query, debounceMs, minQueryLength, performSearch, results])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, debounceMs, minQueryLength, performSearch])
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
