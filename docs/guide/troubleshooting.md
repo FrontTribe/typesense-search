@@ -183,8 +183,9 @@ Common issues and solutions for the Typesense Search Plugin.
 
 3. **Verify baseUrl configuration**
    ```typescript
-   <UnifiedSearchInput
+   <HeadlessSearchInput
      baseUrl="http://localhost:3000" // Must match your domain
+     collection="posts"
    />
    ```
 
@@ -204,10 +205,10 @@ Common issues and solutions for the Typesense Search Plugin.
 
    ```typescript
    // Correct import
-   import { UnifiedSearchInput } from 'typesense-search-plugin'
+   import { HeadlessSearchInput } from 'typesense-search-plugin'
 
    // Not
-   import { UnifiedSearchInput } from 'typesense-search-plugin/dist'
+   import { HeadlessSearchInput } from 'typesense-search-plugin/dist'
    ```
 
 3. **Update TypeScript configuration**

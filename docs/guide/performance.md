@@ -114,8 +114,9 @@ typesense: {
 Use debouncing to reduce API calls:
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   debounceMs={300} // 300ms debounce
   minQueryLength={2} // Minimum query length
   perPage={10} // Limit results per page
@@ -128,7 +129,7 @@ Memoize expensive operations:
 
 ```tsx
 import React, { memo, useCallback, useMemo } from 'react'
-import { UnifiedSearchInput } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
 
 // Memoize result component
 const SearchResult = memo(({ hit }: { hit: SearchResult }) => (
@@ -155,8 +156,9 @@ const SearchPage = () => {
   )
 
   return (
-    <UnifiedSearchInput
+    <HeadlessSearchInput
       {...searchConfig}
+      collection="posts"
       onResultClick={handleResultClick}
       renderResult={(hit, index) => <SearchResult key={index} hit={hit} />}
     />
@@ -169,8 +171,9 @@ const SearchPage = () => {
 Optimize rendering with custom components:
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   renderResult={(hit, index) => (
     <div key={hit.id} className="result">
       <h3>{hit.document.title}</h3>
@@ -224,8 +227,9 @@ curl "http://localhost:3000/api/search/health/detailed"
 Track search performance in your application:
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   onResults={(results) => {
     // Track search performance
     console.log(`Search completed in ${results.search_time_ms}ms`)

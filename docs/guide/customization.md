@@ -10,7 +10,7 @@ Override the default styles with CSS:
 
 ```css
 /* Custom search input */
-.unified-search-input input {
+.headless-search-input input {
   border: 2px solid #667eea;
   border-radius: 12px;
   padding: 16px 20px;
@@ -18,13 +18,13 @@ Override the default styles with CSS:
   background: #f8fafc;
 }
 
-.unified-search-input input:focus {
+.headless-search-input input:focus {
   border-color: #5a67d8;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* Custom results */
-.unified-search-input .result {
+.headless-search-input .search-result {
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 8px;
@@ -32,7 +32,7 @@ Override the default styles with CSS:
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.unified-search-input .result:hover {
+.headless-search-input .search-result:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -43,8 +43,23 @@ Override the default styles with CSS:
 Create completely custom result displays:
 
 ```tsx
-<UnifiedSearchInput
+// Single collection with custom rendering
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
+  renderResult={(hit, index) => (
+    <div key={index} className="custom-result">
+      <h3>{hit.document.title}</h3>
+      <p>{hit.document.content}</p>
+      <span className="collection-badge">{hit.collection}</span>
+    </div>
+  )}
+/>
+
+// Multi-collection with custom rendering
+<HeadlessSearchInput
+  baseUrl="http://localhost:3000"
+  collections={['posts', 'products']}
   renderResult={(hit, index) => (
     <div key={index} className="custom-result">
       <div className="result-header">
@@ -91,8 +106,9 @@ Create completely custom result displays:
 ### Custom Loading and Error States
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   renderLoading={() => (
     <div className="loading-state">
       <div className="spinner"></div>
@@ -200,8 +216,9 @@ curl -X POST "http://localhost:3000/api/search/posts" \
 ### Debouncing
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   debounceMs={500} // Increase for slower networks
   minQueryLength={3} // Reduce API calls
 />
@@ -210,8 +227,9 @@ curl -X POST "http://localhost:3000/api/search/posts" \
 ### Result Limiting
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   perPage={5} // Limit results for faster rendering
 />
 ```
@@ -232,22 +250,22 @@ The plugin includes built-in caching:
 ```css
 /* Dark mode styles */
 @media (prefers-color-scheme: dark) {
-  .unified-search-input input {
+  .headless-search-input input {
     background: #1a202c;
     color: #e2e8f0;
     border-color: #4a5568;
   }
 
-  .unified-search-input .results {
+  .headless-search-input .search-results {
     background: #2d3748;
     border-color: #4a5568;
   }
 
-  .unified-search-input .result {
+  .headless-search-input .search-result {
     color: #e2e8f0;
   }
 
-  .unified-search-input .result:hover {
+  .headless-search-input .search-result:hover {
     background: #4a5568;
   }
 }
@@ -264,13 +282,13 @@ The plugin includes built-in caching:
   --search-text: #2d3748;
 }
 
-.unified-search-input input {
+.headless-search-input input {
   border-color: var(--search-border);
   background: var(--search-background);
   color: var(--search-text);
 }
 
-.unified-search-input input:focus {
+.headless-search-input input:focus {
   border-color: var(--search-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
@@ -281,8 +299,9 @@ The plugin includes built-in caching:
 ### Search Events
 
 ```tsx
-<UnifiedSearchInput
+<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   onSearch={(query) => {
     console.log('Searching for:', query)
     // Track search analytics
@@ -314,8 +333,9 @@ const trackSearchEvent = (event: string, data: any) => {
   })
 }
 
-;<UnifiedSearchInput
+;<HeadlessSearchInput
   baseUrl="http://localhost:3000"
+  collection="posts"
   onSearch={(query) => {
     trackSearchEvent('search_initiated', { query })
   }}

@@ -17,7 +17,19 @@ export interface SearchResult<T = any> {
   content?: string
   displayName?: string
   document: T
-  highlight?: Record<string, string>
+  highlight?: {
+    [field: string]: {
+      matched_tokens: string[]
+      snippet: string
+      value: string
+    }
+  }
+  highlights?: Array<{
+    field: string
+    matched_tokens: string[]
+    snippet: string
+    value: string
+  }>
   icon?: string
   id: string
   text_match?: number

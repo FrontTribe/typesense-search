@@ -5,6 +5,104 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [1.3.0](https://github.com/fronttribe/typesense-search/compare/v1.2.0...v1.3.0) (2025-09-28)
+
+## 🚀 Major Features
+
+### Enhanced HeadlessSearchInput Component
+- **Multi-Collection Support**: Single component now supports single, multiple, or all collection searches
+- **Smart API Selection**: Automatically chooses optimal endpoint (direct collection API vs universal search)
+- **Client-Side Filtering**: Efficient filtering for multi-collection searches using universal endpoint
+- **Improved UI**: Modern Tailwind CSS styling with hover effects, animations, and responsive design
+- **Better Result Display**: Fixed `[object Object]` issue, proper title display, and relative percentage scoring
+
+### Component Architecture Improvements
+- **UnifiedSearchInput Deprecated**: Removed in favor of enhanced HeadlessSearchInput
+- **Single Component Solution**: One component handles all search patterns with complete UI control
+- **Enhanced Props**: Added `collections` prop for multi-collection search alongside existing `collection` prop
+- **Better TypeScript Support**: Improved type definitions and better IntelliSense
+
+### Search Experience Enhancements
+- **Relative Percentage Scoring**: Shows meaningful relevance differences between results
+- **Collection Icons**: Visual indicators for different collection types
+- **Highlighted Snippets**: Better content preview with proper HTML rendering
+- **Keyboard Navigation**: Full keyboard support for accessibility
+- **Loading States**: Improved loading indicators and error handling
+
+### Documentation Updates
+- **Comprehensive Migration Guide**: Step-by-step guide for migrating from UnifiedSearchInput
+- **Updated API Documentation**: Reflects new multi-collection search patterns
+- **Enhanced Examples**: Better code examples for all use cases
+- **Testing Guide**: Complete testing instructions for new features
+
+### Demo Page Improvements
+- **Configuration Switcher**: Easy testing of different search patterns
+- **Live Debug Information**: Real-time API endpoint and result monitoring
+- **Modern UI**: Clean, responsive design with Tailwind CSS
+- **Interactive Testing**: Built-in test buttons and search history
+
+## 🔧 Technical Improvements
+
+### Performance Optimizations
+- **Efficient API Calls**: Direct collection endpoints for single collections
+- **Smart Caching**: Better result caching and state management
+- **Reduced Re-renders**: Optimized React hooks and ref patterns
+- **Bundle Size**: Smaller bundle with removed deprecated components
+
+### Code Quality
+- **ESLint Compliance**: Fixed all critical linting errors
+- **TypeScript Improvements**: Better type safety and IntelliSense
+- **Code Organization**: Cleaner component structure and better separation of concerns
+- **Error Handling**: Comprehensive error handling and user feedback
+
+### Testing & Reliability
+- **Comprehensive Testing**: All major functionality tested and verified
+- **Build Verification**: Successful builds with no errors
+- **Cross-Browser Compatibility**: Tested on multiple browsers and devices
+- **Accessibility**: Improved keyboard navigation and screen reader support
+
+## 📚 Documentation
+
+### New Documentation Files
+- `docs/components/headless-search-input.md` - Complete HeadlessSearchInput documentation
+- `docs/components/unified-search-input.md` - Deprecation notice and migration guide
+- `docs/guide/migration-guide.md` - Comprehensive migration instructions
+- `docs/guide/new-updates-testing.md` - Testing guide for new features
+
+### Updated Documentation
+- All existing documentation updated to reflect new architecture
+- API documentation updated with multi-collection patterns
+- Quick start guide enhanced with new examples
+- Configuration guide updated with new options
+
+## 🎯 Breaking Changes
+
+### Removed Components
+- `UnifiedSearchInput` - Use `HeadlessSearchInput` with `collections` prop instead
+- `MultiCollectionSearchInput` - Use `HeadlessSearchInput` with `collections` prop instead
+
+### Migration Required
+- Update imports from `UnifiedSearchInput` to `HeadlessSearchInput`
+- Use `collections` prop instead of `collections` prop for multi-collection search
+- Update CSS classes from `unified-search-input` to `headless-search-input`
+
+## 🐛 Bug Fixes
+
+- Fixed `[object Object]` display issue in search results
+- Fixed percentage calculation for search result relevance
+- Fixed Tailwind CSS loading issues in demo page
+- Fixed collection filtering in multi-collection searches
+- Fixed infinite loop in search requests
+- Fixed URL parsing for collection-specific searches
+
+## 🔄 Internal Changes
+
+- Refactored search endpoint handling for better performance
+- Improved error handling and user feedback
+- Enhanced TypeScript type definitions
+- Updated build process and dependencies
+- Improved development experience with better debugging
+
 # [1.2.0](https://github.com/fronttribe/typesense-search/compare/v1.1.1...v1.2.0) (2025-09-27)
 
 

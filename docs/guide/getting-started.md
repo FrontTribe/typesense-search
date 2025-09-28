@@ -8,9 +8,9 @@ The Typesense Search Plugin is a powerful, production-ready search solution that
 
 - **Lightning-fast search** with sub-millisecond response times
 - **Typo tolerance** and intelligent ranking
-- **Universal search** across all your collections
+- **Flexible search patterns** - single collection, multiple collections, or all collections
 - **Real-time synchronization** with Payload CMS
-- **Pre-built React components** for easy integration
+- **Single React component** supporting all search patterns with complete UI control
 - **Built-in caching** for optimal performance
 
 ## Prerequisites
@@ -101,7 +101,7 @@ export default buildConfig({
 Now that you have the basics set up, you can:
 
 1. [Configure your collections](/guide/configuration) for search
-2. [Add React components](/components/unified-search-input) to your UI
+2. [Add React components](/components/headless-search-input) to your UI
 3. [Explore the API](/api/search) for advanced usage
 4. [Customize the search behavior](/guide/customization)
 

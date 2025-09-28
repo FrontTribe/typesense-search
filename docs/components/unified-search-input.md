@@ -1,255 +1,123 @@
-# UnifiedSearchInput Component
+# UnifiedSearchInput Component - DEPRECATED
 
-A React component that provides a unified search interface across all enabled collections.
+> **⚠️ DEPRECATED**: The `UnifiedSearchInput` component has been removed in favor of the enhanced `HeadlessSearchInput` component that now supports all search patterns including multi-collection search.
 
-## Import
+## Migration Guide
 
-```typescript
-import { UnifiedSearchInput } from '@fronttribe/typesense-search'
-// or
-import UnifiedSearchInput from '@fronttribe/typesense-search/components/UnifiedSearchInput'
-```
+If you were using `UnifiedSearchInput`, you can now use the enhanced `HeadlessSearchInput` with the same functionality:
 
-## Props
+### Option 1: Direct Replacement with Multi-Collection Support
 
-| Prop                     | Type                                                       | Default       | Description                                                                             |
-| ------------------------ | ---------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------- |
-| `baseUrl`                | `string`                                                   | **Required**  | Base URL of your Payload CMS instance                                                   |
-| `collections`            | `string[]`                                                 | `undefined`   | Array of collection names to search (if not provided, searches all enabled collections) |
-| `debounceMs`             | `number`                                                   | `300`         | Debounce delay in milliseconds                                                          |
-| `includeFullDocument`    | `boolean`                                                  | `undefined`   | Include full document data in results                                                   |
-| `inputClassName`         | `string`                                                   | `''`          | CSS class for the input element                                                         |
-| `minQueryLength`         | `number`                                                   | `2`           | Minimum query length before searching                                                   |
-| `onError`                | `(error: string) => void`                                  | `undefined`   | Callback when search fails                                                              |
-| `onResultClick`          | `(result: SearchResult<T>) => void`                        | `undefined`   | Callback when a result is clicked                                                       |
-| `onResults`              | `(results: SearchResponse<T>) => void`                     | `undefined`   | Callback when search results are received                                               |
-| `onSearch`               | `(query: string) => void`                                  | `undefined`   | Callback when search is performed                                                       |
-| `perPage`                | `number`                                                   | `10`          | Number of results per page                                                              |
-| `placeholder`            | `string`                                                   | `'Search...'` | Input placeholder text                                                                  |
-| `renderLoading`          | `() => React.ReactNode`                                    | `undefined`   | Custom loading renderer                                                                 |
-| `renderNoResults`        | `(query: string) => React.ReactNode`                       | `undefined`   | Custom no results renderer                                                              |
-| `renderResult`           | `(hit: SearchResult<T>, index: number) => React.ReactNode` | `undefined`   | Custom result renderer                                                                  |
-| `resultsClassName`       | `string`                                                   | `''`          | CSS class for the results container                                                     |
-| `showLoading`            | `boolean`                                                  | `true`        | Show loading indicator                                                                  |
-| `showResultCount`        | `boolean`                                                  | `true`        | Show result count                                                                       |
-| `showSearchTime`         | `boolean`                                                  | `true`        | Show search time                                                                        |
-| `className`              | `string`                                                   | `''`          | CSS class for the container                                                             |
-| `errorClassName`         | `string`                                                   | `''`          | CSS class for error state                                                               |
-| `inputWrapperClassName`  | `string`                                                   | `''`          | CSS class for input wrapper                                                             |
-| `loadingClassName`       | `string`                                                   | `''`          | CSS class for loading state                                                             |
-| `maxResults`             | `number`                                                   | `undefined`   | Maximum number of results to display                                                    |
-| `noResultsClassName`     | `string`                                                   | `''`          | CSS class for no results state                                                          |
-| `onLoading`              | `(loading: boolean) => void`                               | `undefined`   | Callback when loading state changes                                                     |
-| `resultsHeaderClassName` | `string`                                                   | `''`          | CSS class for results header                                                            |
-| `resultsListClassName`   | `string`                                                   | `''`          | CSS class for results list                                                              |
-
-## Basic Usage
+**Before (UnifiedSearchInput):**
 
 ```tsx
-import { UnifiedSearchInput } from '@fronttribe/typesense-search'
-
-function SearchPage() {
-  const handleResultClick = (result) => {
-    console.log('Result clicked:', result)
-    // Navigate to result page
-  }
-
-  return (
-    <UnifiedSearchInput
-      baseUrl="http://localhost:3000"
-      placeholder="Search across all collections..."
-      onResultClick={handleResultClick}
-    />
-  )
-}
+import { UnifiedSearchInput } from 'typesense-search-plugin'
+;<UnifiedSearchInput
+  baseUrl="http://localhost:3000"
+  collections={['posts', 'products']}
+  placeholder="Search posts & products..."
+/>
 ```
 
-## Advanced Usage
+**After (Enhanced HeadlessSearchInput):**
 
 ```tsx
-import { UnifiedSearchInput } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
+;<HeadlessSearchInput
+  baseUrl="http://localhost:3000"
+  collections={['posts', 'products']}
+  placeholder="Search posts & products..."
+/>
+```
 
-function AdvancedSearch() {
-  const [searchHistory, setSearchHistory] = useState([])
+### Option 2: Multiple HeadlessSearchInput Components
 
-  const handleSearch = (query) => {
-    setSearchHistory((prev) => [query, ...prev.slice(0, 4)])
-  }
+**After (Multiple HeadlessSearchInput):**
 
-  const handleResults = (results) => {
-    console.log(`Found ${results.found} results in ${results.search_time_ms}ms`)
-  }
+```tsx
+import { HeadlessSearchInput } from 'typesense-search-plugin'
+;<div className="multi-collection-search">
+  <HeadlessSearchInput
+    baseUrl="http://localhost:3000"
+    collection="posts"
+    placeholder="Search posts..."
+  />
+  <HeadlessSearchInput
+    baseUrl="http://localhost:3000"
+    collection="products"
+    placeholder="Search products..."
+  />
+</div>
+```
 
-  const customRenderResult = (hit, index) => (
-    <div key={hit.id} className="custom-result">
-      <h3>{hit.document.title}</h3>
-      <p>{hit.document.content}</p>
-      <span className="collection">{hit.collection}</span>
-    </div>
-  )
+### Option 2: Universal Search Implementation
+
+**Before (UnifiedSearchInput with universal search):**
+
+```tsx
+<UnifiedSearchInput baseUrl="http://localhost:3000" placeholder="Search all collections..." />
+```
+
+**After (Custom Universal Search):**
+
+```tsx
+import { useState, useCallback } from 'react'
+
+function UniversalSearch() {
+  const [results, setResults] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleUniversalSearch = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setResults(null)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/search?q=${encodeURIComponent(query)}&per_page=10`,
+      )
+      if (response.ok) {
+        const searchResults = await response.json()
+        setResults(searchResults)
+      }
+    } catch (error) {
+      console.error('Search failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   return (
-    <div>
-      <UnifiedSearchInput
-        baseUrl="http://localhost:3000"
-        collections={['posts', 'pages']}
-        debounceMs={500}
-        minQueryLength={3}
-        perPage={20}
-        placeholder="Search posts and pages..."
-        onSearch={handleSearch}
-        onResults={handleResults}
-        renderResult={customRenderResult}
-        showSearchTime={true}
-        showResultCount={true}
+    <div className="universal-search">
+      <input
+        type="text"
+        placeholder="Search all collections..."
+        onChange={(e) => handleUniversalSearch(e.target.value)}
       />
-
-      {searchHistory.length > 0 && (
-        <div>
-          <h3>Recent Searches</h3>
-          {searchHistory.map((query, i) => (
-            <span key={i} className="search-tag">
-              {query}
-            </span>
-          ))}
-        </div>
-      )}
+      {loading && <div>Searching...</div>}
+      {/* Render results */}
     </div>
   )
 }
 ```
 
-## Styling
+## Why Was UnifiedSearchInput Removed?
 
-The component uses CSS modules for styling. You can override styles by providing custom classes:
+1. **Simplified Architecture**: Having one primary search component reduces complexity
+2. **Better Performance**: Collection-specific searches are more efficient than filtering universal results
+3. **More Control**: Developers have full control over multi-collection search implementations
+4. **Flexibility**: Easier to customize search behavior for different use cases
 
-```tsx
-<UnifiedSearchInput
-  baseUrl="http://localhost:3000"
-  inputClassName="my-custom-input"
-  resultsClassName="my-custom-results"
-  placeholder="Custom styled search..."
-/>
-```
+## Benefits of the New Approach
 
-## Event Handlers
+- **🎯 Better Performance**: Direct collection-specific API calls
+- **🔧 More Control**: Full control over search behavior and UI
+- **🎨 Flexible Styling**: Easy to customize each search input independently
+- **📱 Better UX**: Can implement different UX patterns for different collections
+- **🚀 Maintainability**: Simpler codebase with one search component
 
-### onResultClick
+## Complete Example
 
-Called when a user clicks on a search result:
-
-```tsx
-const handleResultClick = (result) => {
-  // result.document contains the full document
-  // result.collection contains the collection name
-  // result.highlight contains highlighted text
-  console.log('Clicked result:', result.document.title)
-}
-```
-
-### onResults
-
-Called when search results are received:
-
-```tsx
-const handleResults = (results) => {
-  console.log(`Found ${results.found} results`)
-  console.log('Collections searched:', results.collections)
-  console.log('Search time:', results.search_time_ms + 'ms')
-}
-```
-
-### onSearch
-
-Called when a search is performed:
-
-```tsx
-const handleSearch = (query) => {
-  console.log('Searching for:', query)
-  // Track search analytics
-  analytics.track('search_performed', { query })
-}
-```
-
-### onError
-
-Called when search fails:
-
-```tsx
-const handleError = (error) => {
-  console.error('Search error:', error)
-  // Show user-friendly error message
-  toast.error('Search failed. Please try again.')
-}
-```
-
-## Custom Rendering
-
-You can provide custom renderers for different states:
-
-```tsx
-const customRenderLoading = () => (
-  <div className="loading-spinner">
-    <div className="spinner" />
-    <span>Searching across all collections...</span>
-  </div>
-)
-
-const customRenderNoResults = (query) => (
-  <div className="no-results">
-    <h3>No results found for "{query}"</h3>
-    <p>Try different keywords or check your spelling.</p>
-  </div>
-)
-
-<UnifiedSearchInput
-  baseUrl="http://localhost:3000"
-  renderLoading={customRenderLoading}
-  renderNoResults={customRenderNoResults}
-/>
-```
-
-## TypeScript Support
-
-The component is fully typed with TypeScript:
-
-```tsx
-import { UnifiedSearchInput, SearchResult, SearchResponse } from '@fronttribe/typesense-search'
-
-interface MyDocument {
-  id: string
-  title: string
-  content: string
-  category: string
-}
-
-function TypedSearch() {
-  const handleResultClick = (result: SearchResult<MyDocument>) => {
-    // result.document is typed as MyDocument
-    console.log(result.document.category)
-  }
-
-  return (
-    <UnifiedSearchInput<MyDocument>
-      baseUrl="http://localhost:3000"
-      onResultClick={handleResultClick}
-    />
-  )
-}
-```
-
-## Accessibility
-
-The component includes built-in accessibility features:
-
-- ARIA labels for screen readers
-- Keyboard navigation (Arrow keys, Enter, Escape)
-- Focus management
-- Semantic HTML structure
-
-## Performance
-
-- Debounced search to prevent excessive API calls
-- Built-in caching for search results
-- Efficient re-rendering with React hooks
-- Lazy loading of results
+See the [HeadlessSearchInput documentation](./headless-search-input.md) for complete examples of both single collection and multiple collection search patterns.

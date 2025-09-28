@@ -24,8 +24,8 @@ features:
     title: Accurate Results
     details: Precise matching with configurable typo tolerance and intelligent ranking
   - icon: 🔍
-    title: Universal Search
-    details: Search across all collections simultaneously with unified, categorized results
+    title: Flexible Search
+    details: Search single collections, multiple collections, or all collections with a single component and complete UI control
   - icon: 📱
     title: Responsive Design
     details: Mobile-first design that works perfectly on all devices and screen sizes
@@ -62,6 +62,20 @@ export default buildConfig({
           facetFields: ['category', 'status'],
           displayName: 'Blog Posts',
           icon: '📝'
+        },
+        portfolio: {
+          enabled: true,
+          searchFields: ['title', 'description'],
+          facetFields: ['status', 'featured'],
+          displayName: 'Portfolio',
+          icon: '💼'
+        },
+        products: {
+          enabled: true,
+          searchFields: ['name', 'description'],
+          facetFields: ['category', 'inStock'],
+          displayName: 'Products',
+          icon: '🛍️'
         }
       }
     })
@@ -73,7 +87,7 @@ export default buildConfig({
 
 - **Zero Configuration**: Works out of the box with sensible defaults
 - **TypeScript Native**: Full TypeScript support with comprehensive type definitions
-- **React Components**: Pre-built, customizable React components for search UI
+- **Headless Components**: Single component supporting single, multiple, or universal collection search
 - **Caching**: Built-in search result caching for optimal performance
 - **Flexible**: Highly customizable search behavior and result rendering
 - **Scalable**: Handles millions of documents with ease

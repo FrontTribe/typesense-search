@@ -27,7 +27,7 @@ services:
   typesense:
     image: typesense/typesense:0.25.2
     ports:
-      - "8108:8108"
+      - '8108:8108'
     volumes:
       - ./typesense-data:/data
     command: '--data-dir /data --api-key=xyz --enable-cors'
@@ -139,7 +139,7 @@ import { TypesenseClient } from 'typesense'
 
 const client = new TypesenseClient({
   nodes: [{ host: 'localhost', port: 8108, protocol: 'http' }],
-  apiKey: 'xyz'
+  apiKey: 'xyz',
 })
 
 async function testConnection() {
@@ -170,23 +170,26 @@ Once installation is complete:
 
 1. [Configure your collections](/guide/configuration)
 2. [Set up the plugin in Payload](/guide/quick-start)
-3. [Add search components to your UI](/components/unified-search-input)
+3. [Add search components to your UI](/components/headless-search-input)
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Typesense won't start:**
+
 - Check if port 8108 is available
 - Ensure Docker is running
 - Verify the data directory has proper permissions
 
 **Connection refused:**
+
 - Verify Typesense is running: `curl http://localhost:8108/health`
 - Check firewall settings
 - Ensure the correct host and port
 
 **API key errors:**
+
 - Verify the API key matches what you used to start Typesense
 - Check for typos in the configuration
 

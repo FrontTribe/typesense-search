@@ -12,7 +12,7 @@ http://localhost:3000/api/search
 
 ## Universal Search
 
-Search across all enabled collections simultaneously.
+Search across all enabled collections simultaneously. This is used by the `HeadlessSearchInput` component when no specific collections are provided or when searching multiple collections.
 
 ### GET /api/search
 
@@ -76,7 +76,7 @@ curl "http://localhost:3000/api/search?q=typesense&per_page=5"
 
 ## Collection-Specific Search
 
-Search within a specific collection.
+Search within a specific collection. This is used by the `HeadlessSearchInput` component when the `collection` prop is provided.
 
 ### GET /api/search/{collection}
 
@@ -125,6 +125,35 @@ curl "http://localhost:3000/api/search/posts?q=typesense&per_page=5"
   "search_time_ms": 12
 }
 ```
+
+## Multi-Collection Search Patterns
+
+The `HeadlessSearchInput` component uses different API endpoints based on the props provided:
+
+### Single Collection Search
+
+When using `collection="posts"`:
+
+- **API Call**: `GET /api/search/posts?q=query`
+- **Performance**: Fastest (direct collection search)
+- **Use Case**: Specific collection pages
+
+### Multiple Collections Search
+
+When using `collections={['posts', 'portfolio']}`:
+
+- **API Call**: `GET /api/search?q=query` (universal search)
+- **Client Filtering**: Results filtered to only include specified collections
+- **Performance**: Good (universal search + client filtering)
+- **Use Case**: Multi-collection pages
+
+### All Collections Search
+
+When no collection props provided:
+
+- **API Call**: `GET /api/search?q=query` (universal search)
+- **Performance**: Good (universal search, no filtering)
+- **Use Case**: Global search, site-wide search
 
 ## Advanced Search
 

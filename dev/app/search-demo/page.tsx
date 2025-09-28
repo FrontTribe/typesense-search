@@ -1,27 +1,84 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import UnifiedSearchInput from '../../../src/components/UnifiedSearchInput'
-import type { SearchHit } from '../../../src/components/HeadlessSearchInput'
+import HeadlessSearchInput from '../../../src/components/HeadlessSearchInput.js'
+import type { SearchResult } from '../../../src/lib/types.js'
+
+type ConfigurationType = 'single' | 'multiple' | 'universal'
+
+interface Configuration {
+  id: ConfigurationType
+  name: string
+  description: string
+  config: {
+    collection?: string
+    collections?: string[]
+    placeholder: string
+    endpoint: string
+  }
+  testQuery: string
+}
+
+const configurations: Configuration[] = [
+  {
+    id: 'single',
+    name: 'Single Collection',
+    description: 'Search within posts collection only',
+    config: {
+      collection: 'posts',
+      placeholder: 'Search posts...',
+      endpoint: '/api/search/posts',
+    },
+    testQuery: 'Next.js',
+  },
+  {
+    id: 'multiple',
+    name: 'Multiple Collections',
+    description: 'Search within portfolio and products collections',
+    config: {
+      collections: ['portfolio', 'products'],
+      placeholder: 'Search portfolio & products...',
+      endpoint: '/api/search (with client filtering)',
+    },
+    testQuery: 'design',
+  },
+  {
+    id: 'universal',
+    name: 'Universal Search',
+    description: 'Search across all collections',
+    config: {
+      placeholder: 'Search all collections...',
+      endpoint: '/api/search',
+    },
+    testQuery: 'TypeScript',
+  },
+]
 
 const SearchDemoPage = () => {
-  const [selectedResult, setSelectedResult] = useState<SearchHit['document'] | null>(null)
+  const [activeConfig, setActiveConfig] = useState<ConfigurationType>('single')
+  const [selectedResult, setSelectedResult] = useState<SearchResult['document'] | null>(null)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
   const [searchError, setSearchError] = useState<string | null>(null)
+  const [lastResults, setLastResults] = useState<any>(null)
 
-  const handleResultClick = useCallback((result: SearchHit) => {
+  const currentConfig = configurations.find((config) => config.id === activeConfig)!
+
+  const handleResultClick = useCallback((result: SearchResult) => {
     console.log('Result selected:', result.document)
     setSelectedResult(result.document)
   }, [])
 
-  const handleSearch = useCallback((query: string) => {
-    console.log('Search performed:', query)
-    setSearchHistory((prev) => [query, ...prev.slice(0, 9)]) // Keep last 10 searches
+  const handleSearch = useCallback((query: string, results?: any) => {
+    console.log('Search performed:', query, results)
+    setSearchHistory((prev) => [query, ...prev.slice(0, 9)])
+    setLastResults(results)
+    setSearchError(null)
   }, [])
 
   const handleResults = useCallback((results: any) => {
     console.log('Search results:', results)
-    setSearchError(null) // Clear any previous errors
+    setLastResults(results)
+    setSearchError(null)
   }, [])
 
   const handleSearchError = useCallback((error: string) => {
@@ -29,828 +86,271 @@ const SearchDemoPage = () => {
     setSearchError(error)
   }, [])
 
+  const runTest = useCallback(() => {
+    console.log(`Running test for ${currentConfig.name}: ${currentConfig.testQuery}`)
+  }, [currentConfig])
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#f8fafc',
-        padding: '40px 20px',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-        }}
-      >
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div
-          style={{
-            textAlign: 'center',
-            marginBottom: '40px',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              color: '#1f2937',
-              margin: '0 0 16px 0',
-            }}
-          >
-            🔍 Typesense Search Demo
-          </h1>
-          <p
-            style={{
-              fontSize: '18px',
-              color: '#6b7280',
-              margin: '0 0 24px 0',
-            }}
-          >
-            Experience lightning-fast, typo-tolerant search with universal and collection-specific
-            search
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">🔍 Typesense Search Demo</h1>
+          <p className="text-xl text-gray-600 mb-6">
+            Test different search configurations with a single component
           </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              marginBottom: '24px',
-            }}
-          >
-            <span
-              style={{
-                backgroundColor: '#10b981',
-                color: 'white',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              ✨ Universal Search
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              ✨ Multi-Collection Support
             </span>
-            <span
-              style={{
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              🎯 Collection-Specific
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              ⚡ Lightning Fast
             </span>
-            <span
-              style={{
-                backgroundColor: '#8b5cf6',
-                color: 'white',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                fontSize: '14px',
-                fontWeight: '500',
-              }}
-            >
-              ⚡ Real-time Sync
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+              🎯 Smart API Selection
             </span>
           </div>
         </div>
 
-        {/* Search Examples Section */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            padding: '32px',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginBottom: '32px',
-            border: '1px solid #e1e5e9',
-          }}
-        >
-          <h2
-            style={{
-              margin: '0 0 24px 0',
-              color: '#374151',
-              fontSize: '24px',
-              textAlign: 'center',
-            }}
-          >
-            🚀 Search Examples
-          </h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            {/* Universal Search */}
-            <div
-              style={{
-                padding: '24px',
-                border: '2px solid #10b981',
-                borderRadius: '12px',
-                backgroundColor: '#f0fdf4',
-              }}
-            >
-              <h3
-                style={{
-                  margin: '0 0 12px 0',
-                  color: '#065f46',
-                  fontSize: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
+        {/* Configuration Selector */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {configurations.map((config) => (
+              <button
+                key={config.id}
+                onClick={() => setActiveConfig(config.id)}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  activeConfig === config.id
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                }`}
               >
-                ✨ Universal Search
-              </h3>
-              <p
-                style={{
-                  margin: '0 0 16px 0',
-                  color: '#047857',
-                  fontSize: '14px',
-                }}
-              >
-                Search across all collections at once
-              </p>
-              <div
-                style={{
-                  backgroundColor: '#ffffff',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #d1fae5',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  color: '#065f46',
-                }}
-              >
-                GET /api/search?q=server
-              </div>
-            </div>
-
-            {/* Collection-Specific Search */}
-            <div
-              style={{
-                padding: '24px',
-                border: '2px solid #3b82f6',
-                borderRadius: '12px',
-                backgroundColor: '#eff6ff',
-              }}
-            >
-              <h3
-                style={{
-                  margin: '0 0 12px 0',
-                  color: '#1e40af',
-                  fontSize: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                🎯 Collection-Specific
-              </h3>
-              <p
-                style={{
-                  margin: '0 0 16px 0',
-                  color: '#2563eb',
-                  fontSize: '14px',
-                }}
-              >
-                Search within specific collections
-              </p>
-              <div
-                style={{
-                  backgroundColor: '#ffffff',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #bfdbfe',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  color: '#1e40af',
-                }}
-              >
-                GET /api/search/posts?q=server
-                <br />
-                GET /api/search/portfolio?q=design
-                <br />
-                GET /api/search/products?q=laptop
-              </div>
-            </div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900">{config.name}</h3>
+                  {activeConfig === config.id && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 mb-3">{config.description}</p>
+                <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
+                  {config.config.endpoint}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Unified Search Component */}
-        <div
-          style={{
-            maxWidth: '800px',
-            margin: '0 auto 40px auto',
-          }}
-        >
-          <div
-            style={{
-              padding: '32px',
-              border: '1px solid #e1e5e9',
-              borderRadius: '12px',
-              backgroundColor: '#fafbfc',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            }}
-          >
-            <h2
-              style={{
-                margin: '0 0 20px 0',
-                color: '#374151',
-                fontSize: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                textAlign: 'center',
-              }}
+        {/* Search Component */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">{currentConfig.name} Search</h2>
+              <p className="text-gray-600 mt-1">{currentConfig.description}</p>
+            </div>
+            <button
+              onClick={runTest}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
-              🔍 Universal Search
-            </h2>
-            <p
-              style={{
-                margin: '0 0 24px 0',
-                color: '#6b7280',
-                textAlign: 'center',
-                fontSize: '16px',
-              }}
-            >
-              Search across all collections: Posts, Portfolio, Products, and Media
-            </p>
-            <UnifiedSearchInput
-              baseUrl="http://localhost:3000"
-              placeholder="Search everything..."
-              onResultClick={handleResultClick}
-              onSearch={handleSearch}
-              onResults={handleResults}
-              onError={handleSearchError}
-              debounceMs={300}
-              minQueryLength={2}
-              perPage={10}
-              showLoading={true}
-              showSearchTime={true}
-              showResultCount={true}
-            />
+              Test: "{currentConfig.testQuery}"
+            </button>
+          </div>
 
-            {/* Error Display */}
-            {searchError && (
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '12px 16px',
-                  backgroundColor: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '8px',
-                  color: '#dc2626',
-                  fontSize: '14px',
-                }}
-              >
-                <strong>Search Error:</strong> {searchError}
+          <HeadlessSearchInput
+            baseUrl="http://localhost:3000"
+            {...currentConfig.config}
+            onResultClick={handleResultClick}
+            onSearch={handleSearch}
+            onResults={handleResults}
+            onError={handleSearchError}
+            debounceMs={300}
+            minQueryLength={2}
+            perPage={10}
+            showLoading={true}
+            showSearchTime={true}
+            showResultCount={true}
+            className="w-full"
+            inputClassName="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+            resultsClassName="mt-4 bg-gray-50 rounded-lg border border-gray-200"
+          />
+
+          {/* Error Display */}
+          {searchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Search Error</h3>
+                  <p className="text-sm text-red-700 mt-1">{searchError}</p>
+                </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Results & Debug Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Search Results */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Last Results</h3>
+            {lastResults ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">Results Found:</span>
+                  <span className="text-sm font-bold text-gray-900">{lastResults.found}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">Search Time:</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {lastResults.search_time_ms}ms
+                  </span>
+                </div>
+                {lastResults.collections && (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700 block mb-2">
+                      Collections:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {lastResults.collections.map((col: any, index: number) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {col.collection} ({col.found})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No search results yet</p>
             )}
+          </div>
 
-            {/* Debug Info */}
-            <div
-              style={{
-                marginTop: '16px',
-                padding: '12px 16px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '12px',
-                color: '#64748b',
-              }}
-            >
-              <strong>Debug Info:</strong> Search endpoint:{' '}
-              <code>http://localhost:3000/api/search</code>
-              <br />
-              Collections endpoint: <code>http://localhost:3000/api/search/collections</code>
+          {/* Debug Information */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Debug Information</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Active Configuration
+                </label>
+                <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
+                  {currentConfig.name}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">API Endpoint</label>
+                <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
+                  {currentConfig.config.endpoint}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search History
+                </label>
+                <div className="p-3 bg-gray-50 rounded-lg max-h-24 overflow-y-auto">
+                  {searchHistory.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {searchHistory.slice(0, 5).map((query, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-800"
+                        >
+                          {query}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No searches yet</p>
+                  )}
+                </div>
+              </div>
+
+              {selectedResult && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Selected Result
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">
+                      {selectedResult.title || selectedResult.name || 'Untitled'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">ID: {selectedResult.id}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Search History */}
-        {searchHistory.length > 0 && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              padding: '24px',
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              marginBottom: '32px',
-              border: '1px solid #e1e5e9',
-            }}
-          >
-            <h3
-              style={{
-                margin: '0 0 16px 0',
-                color: '#374151',
-                fontSize: '18px',
-              }}
-            >
-              📝 Recent Searches
-            </h3>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              {searchHistory.map((query, index) => (
-                <span
-                  key={index}
-                  style={{
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    fontSize: '14px',
-                    border: '1px solid #e5e7eb',
-                  }}
-                >
-                  {query}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Selected Result */}
-        {selectedResult && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              padding: '24px',
-              borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              border: '1px solid #e1e5e9',
-            }}
-          >
-            <h3
-              style={{
-                margin: '0 0 16px 0',
-                color: '#374151',
-                fontSize: '18px',
-              }}
-            >
-              📄 Selected Result
-            </h3>
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <pre
-                style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  color: '#374151',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {JSON.stringify(selectedResult, null, 2)}
-              </pre>
-            </div>
-          </div>
-        )}
-
-        {/* Features Section */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            padding: '32px',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            border: '1px solid #e1e5e9',
-            marginTop: '32px',
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 24px 0',
-              color: '#374151',
-              fontSize: '24px',
-              textAlign: 'center',
-            }}
-          >
-            🚀 Features
-          </h3>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '24px',
-            }}
-          >
+        {/* Instructions */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">💡 How to Test</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                ⚡ Lightning Fast
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Sub-millisecond search response times powered by Typesense's optimized search
-                engine.
+              <h4 className="font-medium text-blue-900 mb-2">1. Switch Configurations</h4>
+              <p className="text-sm text-blue-700">
+                Click different configuration cards above to test single collection, multiple
+                collections, or universal search.
               </p>
             </div>
             <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                🎯 Accurate Results
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Precise matching with configurable typo tolerance for optimal search accuracy.
+              <h4 className="font-medium text-blue-900 mb-2">2. Test Search</h4>
+              <p className="text-sm text-blue-700">
+                Use the "Test" button or type in the search input to see how different
+                configurations behave.
               </p>
             </div>
             <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                🌐 Universal Search
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Search across all collections simultaneously with unified results and collection
-                metadata.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                🎯 Collection-Specific
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Target specific collections for focused, high-performance searches.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                📱 Responsive Design
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Mobile-first design that works perfectly on all devices and screen sizes.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                🎨 Customizable
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Fully customizable UI, search behavior, and result rendering.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                🔄 Real-time Sync
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  lineHeight: '1.6',
-                }}
-              >
-                Automatic synchronization with Payload CMS changes for always up-to-date results.
+              <h4 className="font-medium text-blue-900 mb-2">3. Monitor Results</h4>
+              <p className="text-sm text-blue-700">
+                Check the debug panel to see which API endpoint is called and verify the results.
               </p>
             </div>
           </div>
         </div>
 
-        {/* API Documentation */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            padding: '32px',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginTop: '32px',
-            border: '1px solid #e1e5e9',
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 24px 0',
-              color: '#374151',
-              fontSize: '24px',
-              textAlign: 'center',
-            }}
-          >
-            📚 API Documentation
-          </h3>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                Universal Search
-              </h4>
-              <div
-                style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  color: '#374151',
-                }}
-              >
-                <div style={{ color: '#059669', marginBottom: '8px' }}>
-                  GET /api/search?q=server
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                  Returns results from all enabled collections
-                </div>
+        {/* Features */}
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-6">🚀 Features</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">⚡</span>
               </div>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                Collection-Specific
-              </h4>
-              <div
-                style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  color: '#374151',
-                }}
-              >
-                <div style={{ color: '#2563eb', marginBottom: '8px' }}>
-                  GET /api/search/posts?q=server
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                  Returns results only from posts collection
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                Collections List
-              </h4>
-              <div
-                style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  color: '#374151',
-                }}
-              >
-                <div style={{ color: '#7c3aed', marginBottom: '8px' }}>
-                  GET /api/search/collections
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                  Returns list of available collections
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '12px',
-                  fontSize: '18px',
-                }}
-              >
-                Search Suggestions
-              </h4>
-              <div
-                style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  color: '#374151',
-                }}
-              >
-                <div style={{ color: '#dc2626', marginBottom: '8px' }}>
-                  GET /api/search/posts/suggest?q=ser
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                  Returns search suggestions for autocomplete
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Usage Instructions */}
-        <div
-          style={{
-            backgroundColor: '#f8fafc',
-            padding: '32px',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            marginTop: '32px',
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 20px 0',
-              color: '#374151',
-              fontSize: '20px',
-            }}
-          >
-            💡 How to Use
-          </h3>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '8px',
-                  fontSize: '16px',
-                }}
-              >
-                1. Universal Search
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                Use the search box above to search across all collections simultaneously.
+              <h4 className="font-semibold text-gray-900 mb-2">Lightning Fast</h4>
+              <p className="text-sm text-gray-600">
+                Sub-millisecond search response times powered by Typesense's optimized engine.
               </p>
             </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '8px',
-                  fontSize: '16px',
-                }}
-              >
-                2. Collection-Specific
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                Use API endpoints like /api/search/posts?q=term for targeted searches.
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🎯</span>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Smart API Selection</h4>
+              <p className="text-sm text-gray-600">
+                Automatically chooses the most efficient API endpoint based on your configuration.
               </p>
             </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '8px',
-                  fontSize: '16px',
-                }}
-              >
-                3. View Results
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                Results show collection icons, metadata, and highlighted matches.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  color: '#1f2937',
-                  marginBottom: '8px',
-                  fontSize: '16px',
-                }}
-              >
-                4. Real-time Updates
-              </h4>
-              <p
-                style={{
-                  color: '#6b7280',
-                  margin: 0,
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                }}
-              >
-                Search results update automatically when content changes in Payload CMS.
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🔍</span>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Flexible Search</h4>
+              <p className="text-sm text-gray-600">
+                Single component supporting single, multiple, or universal collection search.
               </p>
             </div>
           </div>

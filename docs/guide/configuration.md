@@ -5,7 +5,7 @@ The Typesense Search Plugin can be configured with various options to customize 
 ## Basic Configuration
 
 ```typescript
-import { typesenseSearch } from '@fronttribe/typesense-search'
+import { typesenseSearch } from 'typesense-search-plugin'
 
 const config = {
   // ... your Payload config
@@ -69,7 +69,7 @@ const config = {
 ## Complete Configuration Example
 
 ```typescript
-import { typesenseSearch } from '@fronttribe/typesense-search'
+import { typesenseSearch } from 'typesense-search-plugin'
 
 const config = {
   // ... your Payload config

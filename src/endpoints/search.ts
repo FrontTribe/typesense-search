@@ -178,8 +178,28 @@ const createSearchHandler = (
     try {
       // Extract query parameters from the request
       const { params, query } = request
-      const { collectionName } = (params as Record<string, unknown>) || {}
-      const collectionNameStr = String(collectionName || '')
+
+      // Extract collection name from URL path (fallback to params if available)
+      let collectionName: string
+      let collectionNameStr: string
+
+      if (request.url && typeof request.url === 'string') {
+        const url = new URL(request.url)
+        const pathParts = url.pathname.split('/')
+        const searchIndex = pathParts.indexOf('search')
+        if (searchIndex !== -1 && pathParts[searchIndex + 1]) {
+          collectionName = pathParts[searchIndex + 1] || ''
+          collectionNameStr = String(collectionName)
+        } else {
+          collectionName = ''
+          collectionNameStr = ''
+        }
+      } else {
+        // Fallback to params extraction
+        const { collectionName: paramCollectionName } = (params as Record<string, unknown>) || {}
+        collectionName = String(paramCollectionName || '')
+        collectionNameStr = collectionName
+      }
 
       // Extract search parameters
       const q = String((query as Record<string, unknown>)?.q || '')

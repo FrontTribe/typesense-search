@@ -1,56 +1,60 @@
 # HeadlessSearchInput Component
 
-A headless React component for searching within a specific collection. Provides complete control over rendering and behavior.
+A powerful, headless React component for searching within collections. This is the primary search component that provides complete control over rendering and behavior. It supports both single collection searches and multiple collection searches using a single component.
 
 ## Import
 
 ```typescript
-import { HeadlessSearchInput } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
 // or
-import HeadlessSearchInput from '@fronttribe/typesense-search/components/HeadlessSearchInput'
+import HeadlessSearchInput from 'typesense-search-plugin/components/HeadlessSearchInput'
 ```
 
 ## Props
 
-| Prop                     | Type                                                          | Default       | Description                               |
-| ------------------------ | ------------------------------------------------------------- | ------------- | ----------------------------------------- |
-| `baseUrl`                | `string`                                                      | **Required**  | Base URL of your Payload CMS instance     |
-| `collection`             | `string`                                                      | **Required**  | Collection name to search in              |
-| `className`              | `string`                                                      | `''`          | CSS class for the container               |
-| `debounceMs`             | `number`                                                      | `300`         | Debounce delay in milliseconds            |
-| `enableSuggestions`      | `boolean`                                                     | `true`        | Enable search suggestions                 |
-| `errorClassName`         | `string`                                                      | `''`          | CSS class for error state                 |
-| `inputClassName`         | `string`                                                      | `''`          | CSS class for the input element           |
-| `inputWrapperClassName`  | `string`                                                      | `''`          | CSS class for input wrapper               |
-| `loadingClassName`       | `string`                                                      | `''`          | CSS class for loading state               |
-| `minQueryLength`         | `number`                                                      | `2`           | Minimum query length before searching     |
-| `noResultsClassName`     | `string`                                                      | `''`          | CSS class for no results state            |
-| `onResultClick`          | `(result: SearchResult<T>) => void`                           | `undefined`   | Callback when a result is clicked         |
-| `onResults`              | `(results: SearchResponse<T>) => void`                        | `undefined`   | Callback when search results are received |
-| `onSearch`               | `(query: string, results: SearchResponse<T>) => void`         | `undefined`   | Callback when search is performed         |
-| `perPage`                | `number`                                                      | `10`          | Number of results per page                |
-| `placeholder`            | `string`                                                      | `'Search...'` | Input placeholder text                    |
-| `renderError`            | `(error: string) => React.ReactNode`                          | `undefined`   | Custom error renderer                     |
-| `renderInput`            | `(props: InputProps) => React.ReactNode`                      | `undefined`   | Custom input renderer                     |
-| `renderLoading`          | `() => React.ReactNode`                                       | `undefined`   | Custom loading renderer                   |
-| `renderNoResults`        | `(query: string) => React.ReactNode`                          | `undefined`   | Custom no results renderer                |
-| `renderResult`           | `(result: SearchResult<T>, index: number) => React.ReactNode` | `undefined`   | Custom result renderer                    |
-| `renderResultsHeader`    | `(found: number, searchTime: number) => React.ReactNode`      | `undefined`   | Custom results header renderer            |
-| `resultItemClassName`    | `string`                                                      | `''`          | CSS class for individual result items     |
-| `resultsClassName`       | `string`                                                      | `''`          | CSS class for the results container       |
-| `resultsHeaderClassName` | `string`                                                      | `''`          | CSS class for results header              |
-| `resultsListClassName`   | `string`                                                      | `''`          | CSS class for results list                |
-| `showLoading`            | `boolean`                                                     | `true`        | Show loading indicator                    |
-| `showResultCount`        | `boolean`                                                     | `true`        | Show result count                         |
-| `showSearchTime`         | `boolean`                                                     | `true`        | Show search time                          |
-| `maxResults`             | `number`                                                      | `undefined`   | Maximum number of results to display      |
-| `onError`                | `(error: string) => void`                                     | `undefined`   | Callback when search fails                |
-| `onLoading`              | `(loading: boolean) => void`                                  | `undefined`   | Callback when loading state changes       |
+| Prop                     | Type                                                          | Default       | Description                                      |
+| ------------------------ | ------------------------------------------------------------- | ------------- | ------------------------------------------------ |
+| `baseUrl`                | `string`                                                      | **Required**  | Base URL of your Payload CMS instance            |
+| `collection`             | `string`                                                      | -             | Collection name to search in (single collection) |
+| `collections`            | `string[]`                                                    | -             | Collections to search in (multi-collection)      |
+| `className`              | `string`                                                      | `''`          | CSS class for the container                      |
+| `debounceMs`             | `number`                                                      | `300`         | Debounce delay in milliseconds                   |
+| `enableSuggestions`      | `boolean`                                                     | `true`        | Enable search suggestions                        |
+| `errorClassName`         | `string`                                                      | `''`          | CSS class for error state                        |
+| `inputClassName`         | `string`                                                      | `''`          | CSS class for the input element                  |
+| `inputWrapperClassName`  | `string`                                                      | `''`          | CSS class for input wrapper                      |
+| `loadingClassName`       | `string`                                                      | `''`          | CSS class for loading state                      |
+| `minQueryLength`         | `number`                                                      | `2`           | Minimum query length before searching            |
+| `noResultsClassName`     | `string`                                                      | `''`          | CSS class for no results state                   |
+| `onResultClick`          | `(result: SearchResult<T>) => void`                           | `undefined`   | Callback when a result is clicked                |
+| `onResults`              | `(results: SearchResponse<T>) => void`                        | `undefined`   | Callback when search results are received        |
+| `onSearch`               | `(query: string, results: SearchResponse<T>) => void`         | `undefined`   | Callback when search is performed                |
+| `perPage`                | `number`                                                      | `10`          | Number of results per page                       |
+| `placeholder`            | `string`                                                      | `'Search...'` | Input placeholder text                           |
+| `renderError`            | `(error: string) => React.ReactNode`                          | `undefined`   | Custom error renderer                            |
+| `renderInput`            | `(props: InputProps) => React.ReactNode`                      | `undefined`   | Custom input renderer                            |
+| `renderLoading`          | `() => React.ReactNode`                                       | `undefined`   | Custom loading renderer                          |
+| `renderNoResults`        | `(query: string) => React.ReactNode`                          | `undefined`   | Custom no results renderer                       |
+| `renderResult`           | `(result: SearchResult<T>, index: number) => React.ReactNode` | `undefined`   | Custom result renderer                           |
+| `renderResultsHeader`    | `(found: number, searchTime: number) => React.ReactNode`      | `undefined`   | Custom results header renderer                   |
+| `resultItemClassName`    | `string`                                                      | `''`          | CSS class for individual result items            |
+| `resultsClassName`       | `string`                                                      | `''`          | CSS class for the results container              |
+| `resultsHeaderClassName` | `string`                                                      | `''`          | CSS class for results header                     |
+| `resultsListClassName`   | `string`                                                      | `''`          | CSS class for results list                       |
+| `showLoading`            | `boolean`                                                     | `true`        | Show loading indicator                           |
+| `showResultCount`        | `boolean`                                                     | `true`        | Show result count                                |
+| `showSearchTime`         | `boolean`                                                     | `true`        | Show search time                                 |
+| `maxResults`             | `number`                                                      | `undefined`   | Maximum number of results to display             |
+| `perPage`                | `number`                                                      | `10`          | Number of results per page                       |
+| `onError`                | `(error: string) => void`                                     | `undefined`   | Callback when search fails                       |
+| `onLoading`              | `(loading: boolean) => void`                                  | `undefined`   | Callback when loading state changes              |
 
-## Basic Usage
+**Note**: You can provide either `collection` (single), `collections` (multiple), or neither (all collections). The component will automatically choose the most efficient API endpoint.
+
+## Basic Usage - Single Collection
 
 ```tsx
-import { HeadlessSearchInput } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
 
 function PostSearch() {
   return (
@@ -63,10 +67,147 @@ function PostSearch() {
 }
 ```
 
+## Multiple Collection Search
+
+The `HeadlessSearchInput` component supports multiple collection search patterns:
+
+### Option 1: Multiple Collections with Single Component
+
+```tsx
+function MultiCollectionSearch() {
+  return (
+    <div className="multi-collection-search">
+      {/* Search specific collections */}
+      <HeadlessSearchInput
+        baseUrl="http://localhost:3000"
+        collections={['posts', 'products']}
+        placeholder="Search posts & products..."
+        onResultClick={(result) => console.log('Result clicked:', result)}
+      />
+
+      {/* Search all collections */}
+      <HeadlessSearchInput
+        baseUrl="http://localhost:3000"
+        placeholder="Search all collections..."
+        onResultClick={(result) => console.log('Result clicked:', result)}
+      />
+    </div>
+  )
+}
+```
+
+### Option 2: Multiple Collection-Specific Inputs
+
+```tsx
+function MultiCollectionSearch() {
+  return (
+    <div className="multi-collection-search">
+      <div className="search-section">
+        <h3>Posts</h3>
+        <HeadlessSearchInput
+          baseUrl="http://localhost:3000"
+          collection="posts"
+          placeholder="Search posts..."
+          onResultClick={(result) => console.log('Post clicked:', result)}
+        />
+      </div>
+
+      <div className="search-section">
+        <h3>Products</h3>
+        <HeadlessSearchInput
+          baseUrl="http://localhost:3000"
+          collection="products"
+          placeholder="Search products..."
+          onResultClick={(result) => console.log('Product clicked:', result)}
+        />
+      </div>
+    </div>
+  )
+}
+```
+
+### Option 3: Custom Universal Search Implementation
+
+```tsx
+import { useState, useCallback } from 'react'
+
+function UniversalSearch() {
+  const [results, setResults] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleUniversalSearch = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setResults(null)
+      return
+    }
+
+    setLoading(true)
+    try {
+      // Use the universal search endpoint that searches all collections
+      const response = await fetch(
+        `http://localhost:3000/api/search?q=${encodeURIComponent(query)}&per_page=10`,
+      )
+      if (response.ok) {
+        const searchResults = await response.json()
+        setResults(searchResults)
+      }
+    } catch (error) {
+      console.error('Search failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const renderUniversalResults = () => {
+    if (!results) return null
+
+    return (
+      <div className="universal-results">
+        <div className="results-header">
+          Found {results.found} result{results.found !== 1 ? 's' : ''}
+          {results.search_time_ms && ` in ${results.search_time_ms}ms`}
+        </div>
+
+        {results.hits?.map((hit, index) => (
+          <div
+            key={index}
+            className="result-item"
+            onClick={() => console.log('Result clicked:', hit)}
+          >
+            <div className="result-header">
+              <span className="collection-icon">{hit.icon || '📄'}</span>
+              <span className="collection-name">{hit.collection}</span>
+            </div>
+            <div className="result-title">
+              {hit.document?.title || hit.document?.name || 'Untitled'}
+            </div>
+            <div className="result-description">
+              {hit.document?.description || hit.document?.shortDescription || 'No description'}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="universal-search">
+      <input
+        type="text"
+        placeholder="Search all collections..."
+        onChange={(e) => handleUniversalSearch(e.target.value)}
+      />
+      {loading && <div>Searching...</div>}
+      {renderUniversalResults()}
+    </div>
+  )
+}
+```
+
 ## Advanced Usage with Custom Rendering
 
 ```tsx
-import { HeadlessSearchInput } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
 
 function CustomPostSearch() {
   const customRenderResult = (result, index) => (
@@ -244,7 +385,7 @@ The component uses CSS modules. You can override styles:
 ## TypeScript Support
 
 ```tsx
-import { HeadlessSearchInput, SearchResult, SearchResponse } from '@fronttribe/typesense-search'
+import { HeadlessSearchInput, SearchResult, SearchResponse } from 'typesense-search-plugin'
 
 interface PostDocument {
   id: string
