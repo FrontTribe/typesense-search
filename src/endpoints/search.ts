@@ -177,10 +177,11 @@ const createSearchHandler = (
   return async (request: Record<string, unknown>) => {
     try {
       // Extract query parameters from the request
-      const { params, query } = request
-      const { collectionName } = (params as Record<string, unknown>) || {}
-      const collectionNameStr = String(collectionName || '')
-
+      const { params, query, url } = request as { 
+        params?: { collectionName?: string }, 
+        query?: Record<string, unknown>, 
+        url: string 
+      }
       // Extract search parameters
       const q = String((query as Record<string, unknown>)?.q || '')
       const pageParam = (query as Record<string, unknown>)?.page
@@ -188,6 +189,18 @@ const createSearchHandler = (
       const page = pageParam ? parseInt(String(pageParam), 10) : 1
       const per_page = perPageParam ? parseInt(String(perPageParam), 10) : 10
       const sort_by = (query as Record<string, unknown>)?.sort_by
+
+      let collectionName = ""
+
+      if (params?.collectionName) {
+        collectionName = params.collectionName
+      } else {
+        const parts = new URL(url).pathname.split("/")
+        const index = parts.indexOf("search")
+        if (index >= 0 && parts[index + 1]) {
+          collectionName = parts[index + 1]!
+        }
+      }
 
       // Validate parsed numbers
       if (isNaN(page) || page < 1) {
@@ -242,7 +255,7 @@ const createSearchHandler = (
       }
 
       // Validate collection is enabled
-      if (!pluginOptions.collections?.[collectionNameStr]?.enabled) {
+      if (!pluginOptions.collections?.[collectionName]?.enabled) {
         return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
       }
 
@@ -252,14 +265,14 @@ const createSearchHandler = (
 
       const searchParameters: any = {
         highlight_full_fields:
-          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') ||
           'title,content',
         num_typos: 0,
         page: Number(page),
         per_page: Number(per_page),
         q: String(q),
         query_by:
-          pluginOptions.collections?.[collectionNameStr]?.searchFields?.join(',') ||
+          pluginOptions.collections?.[collectionName]?.searchFields?.join(',') ||
           'title,content',
         snippet_threshold: 30,
         typo_tokens_threshold: 1,
@@ -274,23 +287,34 @@ const createSearchHandler = (
 
       // Check cache first
       const cacheOptions = { collection: collectionName, page, per_page, sort_by }
-      const cachedResult = searchCache.get(q, collectionNameStr, cacheOptions)
+      const cachedResult = searchCache.get(q, collectionName, cacheOptions)
       if (cachedResult) {
         // Return cached result
         return Response.json(cachedResult)
       }
 
       const searchResults = await typesenseClient
-        .collections(collectionNameStr)
+        .collections(collectionName)
         .documents()
         .search(searchParameters)
 
       // Process search results
+      const decoratedResults = {
+        ...searchResults,
+        hits: searchResults.hits?.map(hit => ({
+            ...hit,
+            collection: collectionName,
+            displayName:
+            pluginOptions.collections?.[collectionName]?.displayName ||
+            collectionName,
+            icon: pluginOptions.collections?.[collectionName]?.icon || "📄",
+        })) || [],
+      };
 
       // Cache the result
-      searchCache.set(q, searchResults, collectionNameStr, cacheOptions)
+      searchCache.set(q, decoratedResults, collectionName, cacheOptions)
 
-      return Response.json(searchResults)
+      return Response.json(decoratedResults)
     } catch (_error) {
       // Handle search error
       return Response.json(

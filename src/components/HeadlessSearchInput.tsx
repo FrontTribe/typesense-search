@@ -8,7 +8,7 @@ export interface HeadlessSearchInputProps<T = Record<string, unknown>> extends B
   /**
    * Collection to search in
    */
-  collection: string
+  collection?: string
   /**
    * Enable suggestions
    */
@@ -132,7 +132,7 @@ const HeadlessSearchInput = <T = Record<string, unknown>>({
       setError(null)
 
       try {
-        const searchUrl = `${baseUrl}/api/search/${collection}?q=${encodeURIComponent(searchQuery)}&per_page=${perPage}`
+        const searchUrl = `${baseUrl}/api/search${collection ? `/${collection}` : ''}?q=${encodeURIComponent(searchQuery)}&per_page=${perPage}`;
         const response = await fetch(searchUrl)
 
         if (!response.ok) {
@@ -174,7 +174,8 @@ const HeadlessSearchInput = <T = Record<string, unknown>>({
         clearTimeout(debounceRef.current)
       }
     }
-  }, [query, debounceMs, minQueryLength, performSearch, results])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, debounceMs, minQueryLength, performSearch])
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
