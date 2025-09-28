@@ -7,6 +7,12 @@ export default defineConfig({
   // GitHub Pages configuration
   base: '/typesense-search/',
 
+  // Ignore dead links for localhost URLs (used in examples)
+  ignoreDeadLinks: [
+    /^http:\/\/localhost:\d+/,
+    /^https:\/\/localhost:\d+/
+  ],
+
   // Theme configuration
   themeConfig: {
     // Navigation

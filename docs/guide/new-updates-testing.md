@@ -37,7 +37,7 @@ npm run dev
 
 ### 1. Test Multi-Collection Search Patterns
 
-Navigate to the search demo page: http://localhost:3000/search-demo
+Navigate to the search demo page in your development environment (typically at `http://localhost:3000/search-demo` or `http://localhost:3001/search-demo`)
 
 #### Test Single Collection Search
 

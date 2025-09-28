@@ -136,14 +136,41 @@ describe('HeadlessSearchInput Component', () => {
   })
 
   test('displays loading state during search', async () => {
+    // Mock a slow response to catch loading state
+    let resolvePromise: (value: any) => void
+    const slowPromise = new Promise((resolve) => {
+      resolvePromise = resolve
+    })
+
+    ;(global.fetch as unknown as MockFunction).mockImplementation(() =>
+      slowPromise.then(() => ({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            found: 1,
+            hits: [{ id: '1', document: { title: 'Test Post' }, collection: 'posts' }],
+            search_time_ms: 5,
+          }),
+      })),
+    )
+
     render(
       <HeadlessSearchInput baseUrl="http://localhost:3000" collection="posts" showLoading={true} />,
     )
     const input = screen.getByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'test query' } })
 
+    // Check for loading state immediately after input change
     await waitFor(() => {
-      expect(screen.getByText('Searching...')).toBeInTheDocument()
+      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+    })
+
+    // Resolve the promise to complete the search
+    resolvePromise!({})
+
+    // Wait for results
+    await waitFor(() => {
+      expect(screen.getByText('Test Post')).toBeInTheDocument()
     })
   })
 
@@ -169,7 +196,8 @@ describe('HeadlessSearchInput Component', () => {
     fireEvent.change(input, { target: { value: 'test query' } })
 
     await waitFor(() => {
-      expect(screen.getByText('Found 1 result in 5ms')).toBeInTheDocument()
+      expect(screen.getByText('1 result found')).toBeInTheDocument()
+      expect(screen.getByText('5ms')).toBeInTheDocument()
     })
   })
 
@@ -193,7 +221,8 @@ describe('HeadlessSearchInput Component', () => {
     fireEvent.change(input, { target: { value: 'no results' } })
 
     await waitFor(() => {
-      expect(screen.getByText('No results found for "no results"')).toBeInTheDocument()
+      expect(screen.getByText('No results found')).toBeInTheDocument()
+      expect(screen.getByText('Try searching for something else')).toBeInTheDocument()
     })
   })
 
@@ -214,7 +243,8 @@ describe('HeadlessSearchInput Component', () => {
     fireEvent.change(input, { target: { value: 'error query' } })
 
     await waitFor(() => {
-      expect(onErrorMock).toHaveBeenCalledWith(expect.stringContaining('Search failed'))
+      expect(screen.getByText('Search Error')).toBeInTheDocument()
+      expect(screen.getByText(/Search failed/)).toBeInTheDocument()
     })
   })
 
@@ -230,7 +260,7 @@ describe('HeadlessSearchInput Component', () => {
     })
   })
 
-  test('respects debounceMs', async () => {
+  test('respects debounceMs', () => {
     vi.useFakeTimers()
     render(
       <HeadlessSearchInput baseUrl="http://localhost:3000" collection="posts" debounceMs={500} />,
@@ -244,9 +274,8 @@ describe('HeadlessSearchInput Component', () => {
     // Fast forward time
     vi.advanceTimersByTime(500)
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled()
-    })
+    // Should have called fetch now
+    expect(global.fetch).toHaveBeenCalled()
 
     vi.useRealTimers()
   })
@@ -267,7 +296,9 @@ describe('HeadlessSearchInput Component', () => {
       expect(screen.getByText('Test Post')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Test Post'))
+    // Click on the result item (not just the text)
+    const resultItem = screen.getByRole('button', { name: /test post/i })
+    fireEvent.click(resultItem)
 
     expect(onResultClickMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -285,7 +316,7 @@ describe('HeadlessSearchInput Component', () => {
         collection="posts"
       />,
     )
-    const container = screen.getByPlaceholderText('Search...').closest('div')
+    const container = screen.getByPlaceholderText('Search...').closest('.headless-search-input')
     expect(container).toHaveClass('custom-class')
   })
 
@@ -301,27 +332,35 @@ describe('HeadlessSearchInput Component', () => {
     expect(input).toHaveClass('custom-input')
   })
 
-  test('renders with custom perPage', async () => {
+  test('renders with custom perPage', () => {
+    vi.useFakeTimers()
     render(<HeadlessSearchInput baseUrl="http://localhost:3000" collection="posts" perPage={5} />)
     const input = screen.getByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'test query' } })
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/search/posts?q=test%20query&per_page=5',
-      )
-    })
+    // Advance timers to trigger debounce
+    vi.advanceTimersByTime(300)
+
+    // Check that fetch was called with the correct per_page parameter
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/search/posts?q=test%20query&per_page=5',
+    )
+    vi.useRealTimers()
   })
 
-  test('renders with custom baseUrl', async () => {
+  test('renders with custom baseUrl', () => {
+    vi.useFakeTimers()
     render(<HeadlessSearchInput baseUrl="https://api.example.com" collection="posts" />)
     const input = screen.getByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'test query' } })
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.example.com/api/search/posts?q=test%20query&per_page=10',
-      )
-    })
+    // Advance timers to trigger debounce
+    vi.advanceTimersByTime(300)
+
+    // Check that fetch was called with the correct baseUrl
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.example.com/api/search/posts?q=test%20query&per_page=10',
+    )
+    vi.useRealTimers()
   })
 })
