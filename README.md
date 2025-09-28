@@ -42,13 +42,41 @@ export default buildConfig({
 
 ```tsx
 // 4. Use the search component
-import { UnifiedSearchInput } from 'typesense-search-plugin'
+import { HeadlessSearchInput } from 'typesense-search-plugin'
 
 function SearchPage() {
   return (
-    <UnifiedSearchInput
+    <HeadlessSearchInput
       baseUrl="http://localhost:3000"
       placeholder="Search everything..."
+      onResultClick={(result) => {
+        console.log('Selected:', result.document)
+      }}
+    />
+  )
+}
+
+// Multi-collection search
+function MultiCollectionSearch() {
+  return (
+    <HeadlessSearchInput
+      baseUrl="http://localhost:3000"
+      collections={['posts', 'products']}
+      placeholder="Search posts & products..."
+      onResultClick={(result) => {
+        console.log('Selected:', result.document)
+      }}
+    />
+  )
+}
+
+// Single collection search
+function PostSearch() {
+  return (
+    <HeadlessSearchInput
+      baseUrl="http://localhost:3000"
+      collection="posts"
+      placeholder="Search posts..."
       onResultClick={(result) => {
         console.log('Selected:', result.document)
       }}
@@ -60,11 +88,13 @@ function SearchPage() {
 ## ✨ Features
 
 - **⚡ Lightning Fast**: Sub-millisecond search response times
-- **🔍 Universal Search**: Search across all collections simultaneously
-- **🎨 Customizable**: Ready-to-use and headless React components
+- **🔍 Flexible Search**: Single, multiple, or universal collection search with one component
+- **🎨 Modern UI**: Beautiful, responsive design with Tailwind CSS
+- **🎯 Smart API Selection**: Automatically chooses optimal endpoint for performance
 - **🔄 Real-time Sync**: Automatic synchronization with Payload CMS
 - **💾 Built-in Caching**: In-memory cache with configurable TTL
-- **🛡️ Production Ready**: Error handling and performance optimization
+- **🛡️ Production Ready**: Comprehensive error handling and performance optimization
+- **📱 Responsive**: Mobile-first design that works on all devices
 
 ## 📚 Documentation
 
@@ -74,7 +104,7 @@ For detailed documentation, visit our [comprehensive docs](https://fronttribe.gi
 - [Installation Guide](https://fronttribe.github.io/typesense-search/guide/installation)
 - [Configuration](https://fronttribe.github.io/typesense-search/guide/configuration)
 - [API Reference](https://fronttribe.github.io/typesense-search/api/search)
-- [Components](https://fronttribe.github.io/typesense-search/components/unified-search-input)
+- [Components](https://fronttribe.github.io/typesense-search/components/headless-search-input)
 - [Customization](https://fronttribe.github.io/typesense-search/guide/customization)
 - [Performance](https://fronttribe.github.io/typesense-search/guide/performance)
 - [Troubleshooting](https://fronttribe.github.io/typesense-search/guide/troubleshooting)
@@ -90,8 +120,35 @@ For detailed documentation, visit our [comprehensive docs](https://fronttribe.gi
 
 ## 🎨 Components
 
-- **`UnifiedSearchInput`** - Ready-to-use search component
-- **`HeadlessSearchInput`** - Headless component for full control
+- **`HeadlessSearchInput`** - Single component supporting all search patterns:
+  - **Single Collection**: `collection="posts"` - Direct API calls for optimal performance
+  - **Multiple Collections**: `collections={['posts', 'products']}` - Smart filtering with universal search
+  - **Universal Search**: No collection props - Search across all collections
+  - **Complete UI Control**: Customizable rendering with modern Tailwind CSS styling
+
+## 🆕 What's New in v1.3.0
+
+- **🚀 Enhanced HeadlessSearchInput**: Now supports single, multiple, or universal collection search
+- **🎯 Smart API Selection**: Automatically chooses the most efficient endpoint
+- **🎨 Modern UI**: Beautiful Tailwind CSS styling with hover effects and animations
+- **📊 Relative Scoring**: Meaningful percentage display for search result relevance
+- **🔧 Simplified Architecture**: One component handles all search patterns
+- **📱 Responsive Design**: Mobile-first approach with excellent UX
+- **⚡ Performance**: Optimized with client-side filtering and efficient API calls
+
+### Migration from v1.2.0
+
+If you were using `UnifiedSearchInput`, simply replace it with `HeadlessSearchInput`:
+
+```tsx
+// Before (v1.2.0)
+import { UnifiedSearchInput } from 'typesense-search-plugin'
+<UnifiedSearchInput collections={['posts']} />
+
+// After (v1.3.0)
+import { HeadlessSearchInput } from 'typesense-search-plugin'
+<HeadlessSearchInput collection="posts" />
+```
 
 ## 🤝 Contributing
 
