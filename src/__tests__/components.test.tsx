@@ -144,13 +144,13 @@ describe('HeadlessSearchInput Component', () => {
 
     ;(global.fetch as unknown as MockFunction).mockImplementation(() =>
       slowPromise.then(() => ({
-        ok: true,
         json: () =>
           Promise.resolve({
             found: 1,
-            hits: [{ id: '1', document: { title: 'Test Post' }, collection: 'posts' }],
+            hits: [{ id: '1', collection: 'posts', document: { title: 'Test Post' } }],
             search_time_ms: 5,
           }),
+        ok: true,
       })),
     )
 

@@ -507,7 +507,10 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
         )}
         {isLoading && showLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" data-testid="loading-spinner"></div>
+            <div
+              className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"
+              data-testid="loading-spinner"
+            ></div>
           </div>
         )}
       </div>
