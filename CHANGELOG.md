@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2](https://github.com/fronttribe/typesense-search/compare/v1.3.1...v1.3.2) (2025-09-28)
+
+
+### Bug Fixes
+
+* version up ([3747bd3](https://github.com/fronttribe/typesense-search/commit/3747bd312ba6421b9e5f8df3a8bff47be3988dc7))
+
 # [1.3.0](https://github.com/fronttribe/typesense-search/compare/v1.2.0...v1.3.0) (2025-09-28)
 
 
