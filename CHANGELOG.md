@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [1.3.0](https://github.com/fronttribe/typesense-search/compare/v1.2.0...v1.3.0) (2025-09-28)
 
+
+### Bug Fixes
+
+* lint issues ([f5e488a](https://github.com/fronttribe/typesense-search/commit/f5e488a64537000461bbfd8658f018a295d9fcdf))
+* resolve test failures and documentation build issues ([d653283](https://github.com/fronttribe/typesense-search/commit/d653283e855e7d2793cc2c5b5dae87bbcf4b7793))
+
+
+### Features
+
+* v1.3.0 - Enhanced HeadlessSearchInput with multi-collection support ([db804b5](https://github.com/fronttribe/typesense-search/commit/db804b59fda20a414d05691e0ad678802338fbe9))
+
+# [1.3.0](https://github.com/fronttribe/typesense-search/compare/v1.2.0...v1.3.0) (2025-09-28)
+
 ## 🚀 Major Features
 
 ### Enhanced HeadlessSearchInput Component
