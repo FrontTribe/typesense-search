@@ -309,7 +309,7 @@ const createSearchHandler = (
             collectionName,
             icon: pluginOptions.collections?.[collectionName]?.icon || "📄",
         })) || [],
-      };
+      }
 
       // Cache the result
       searchCache.set(q, decoratedResults, collectionName, cacheOptions)
