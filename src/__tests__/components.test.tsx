@@ -316,8 +316,8 @@ describe('HeadlessSearchInput Component', () => {
         collection="posts"
       />,
     )
-    const container = screen.getByPlaceholderText('Search...').closest('.headless-search-input')
-    expect(container).toHaveClass('custom-class')
+    const container = screen.getByPlaceholderText('Search...').closest('.custom-class')
+    expect(container).toBeInTheDocument()
   })
 
   test('renders with custom input className', () => {

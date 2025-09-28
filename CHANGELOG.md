@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/fronttribe/typesense-search/compare/v1.3.2...v1.4.0) (2025-01-27)
+
+### 🎨 Theme System - Major Feature Release
+
+#### Added
+- **Comprehensive Theme System**: 5 pre-built themes (Modern, Minimal, Elegant, Dark, Colorful)
+- **Unlimited Customization**: Override any color, spacing, typography, or animation
+- **Performance Options**: Disable animations/shadows for better performance
+- **Responsive Design**: Automatic mobile optimization with theme system
+- **CSS Variables**: Advanced styling with CSS custom properties
+- **TypeScript Support**: Full type safety for all theme configurations
+- **Theme Provider**: Advanced theme context management
+- **React Hooks**: useTheme, useThemeConfig, useResponsiveTheme for theme management
+- **Theme Utilities**: Helper functions for theme merging and application
+
+#### Enhanced
+- **HeadlessSearchInput**: Now supports comprehensive theme system integration
+- **Developer Experience**: All theme configurations within the plugin and components
+- **Documentation**: Complete theme system documentation with examples
+- **Search Demo**: Integrated theme showcase and testing interface
+
+#### Fixed
+- **Minimal Theme**: Fixed missing horizontal padding in input fields
+- **Theme Options**: Fixed enableShadows, enableAnimations, enableRoundedCorners functionality
+- **React Hooks**: Fixed Rules of Hooks violations in theme system
+- **TypeScript**: Resolved all type safety issues in theme system
+- **Linting**: Fixed 461 linting errors (397 automatically fixed)
+
+#### Technical Details
+- **5 Pre-built Themes**: Ready-to-use themes for immediate implementation
+- **Theme Structure**: Complete interfaces for colors, spacing, typography, animations, shadows
+- **Feature Toggles**: Performance optimization options (animations, shadows, rounded corners)
+- **Responsive Support**: Mobile-optimized theme configurations
+- **CSS Integration**: 29 CSS variables for advanced customization
+- **Hook System**: React hooks for theme management and context
+
+### 🎯 Developer-Friendly
+- **Zero Configuration**: Works out of the box with sensible defaults
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
+- **Easy Migration**: Simple migration from CSS classes to theme system
+- **Comprehensive Examples**: Real-world usage patterns for e-commerce, blog, and portfolio
+
 ## [1.3.2](https://github.com/fronttribe/typesense-search/compare/v1.3.1...v1.3.2) (2025-09-28)
 
 

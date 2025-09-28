@@ -245,10 +245,40 @@ The plugin includes built-in caching:
 
 ## Theme Integration
 
-### Dark Mode
+The plugin includes a comprehensive theme system with 5 pre-built themes and unlimited customization options.
+
+### Quick Theme Usage
+
+```tsx
+// Use pre-built themes
+<HeadlessSearchInput theme="modern" />      // Clean and professional
+<HeadlessSearchInput theme="minimal" />     // Flat design
+<HeadlessSearchInput theme="elegant" />     // Sophisticated with gradients
+<HeadlessSearchInput theme="dark" />        // Perfect for dark mode
+<HeadlessSearchInput theme="colorful" />    // Vibrant and modern
+
+// Custom theme configuration
+<HeadlessSearchInput
+  theme={{
+    theme: 'modern',
+    colors: {
+      inputBorderFocus: '#10b981',
+      inputBackground: '#f0fdf4',
+    },
+    enableAnimations: true,
+    enableShadows: true,
+  }}
+/>
+```
+
+📖 **[Complete Theme System Documentation](/themes/theme-system)** - Learn about all theme options, custom configurations, performance settings, and advanced features.
+
+### Legacy CSS Styling (Deprecated)
+
+> **Note**: The new theme system replaces the need for custom CSS. Use the theme system for better maintainability and consistency.
 
 ```css
-/* Dark mode styles */
+/* Dark mode styles - DEPRECATED: Use theme="dark" instead */
 @media (prefers-color-scheme: dark) {
   .headless-search-input input {
     background: #1a202c;

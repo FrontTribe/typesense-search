@@ -88,9 +88,22 @@ export default buildConfig({
 - **Zero Configuration**: Works out of the box with sensible defaults
 - **TypeScript Native**: Full TypeScript support with comprehensive type definitions
 - **Headless Components**: Single component supporting single, multiple, or universal collection search
+- **🎨 Theme System**: 5 pre-built themes with unlimited customization options
 - **Caching**: Built-in search result caching for optimal performance
 - **Flexible**: Highly customizable search behavior and result rendering
 - **Scalable**: Handles millions of documents with ease
+
+## 🎨 Theme System
+
+The plugin includes a powerful theme system with 5 pre-built themes and unlimited customization:
+
+- **Modern Theme** - Clean and professional (default)
+- **Minimal Theme** - Flat design with minimal styling
+- **Elegant Theme** - Sophisticated with gradients
+- **Dark Theme** - Perfect for dark mode
+- **Colorful Theme** - Vibrant and modern
+
+[📖 **View Complete Theme Documentation**](/themes/theme-system) - Learn about custom themes, color customization, performance options, and more.
 
 ## Community
 

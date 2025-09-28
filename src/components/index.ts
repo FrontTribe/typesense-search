@@ -14,3 +14,7 @@ export { BeforeDashboardServer } from './BeforeDashboardServer.js'
 export { default as HeadlessSearchInput } from './HeadlessSearchInput.js'
 
 export type { HeadlessSearchInputProps } from './HeadlessSearchInput.js'
+
+export { ThemeProvider } from './ThemeProvider.js'
+// Theme system exports
+export * from './themes/index.js'

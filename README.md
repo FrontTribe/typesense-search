@@ -48,6 +48,7 @@ function SearchPage() {
   return (
     <HeadlessSearchInput
       baseUrl="http://localhost:3000"
+      theme="modern" // Choose from: modern, minimal, elegant, dark, colorful
       placeholder="Search everything..."
       onResultClick={(result) => {
         console.log('Selected:', result.document)
@@ -124,17 +125,85 @@ For detailed documentation, visit our [comprehensive docs](https://fronttribe.gi
   - **Single Collection**: `collection="posts"` - Direct API calls for optimal performance
   - **Multiple Collections**: `collections={['posts', 'products']}` - Smart filtering with universal search
   - **Universal Search**: No collection props - Search across all collections
-  - **Complete UI Control**: Customizable rendering with modern Tailwind CSS styling
+  - **Complete UI Control**: Customizable rendering with comprehensive theme system
 
-## 🆕 What's New in v1.3.0
+## 🎨 Theme System
 
-- **🚀 Enhanced HeadlessSearchInput**: Now supports single, multiple, or universal collection search
+The plugin includes a powerful theme system with 5 pre-built themes and unlimited customization:
+
+### Pre-built Themes
+
+```tsx
+// Modern theme (default) - Clean and professional
+<HeadlessSearchInput theme="modern" />
+
+// Minimal theme - Flat design with minimal styling
+<HeadlessSearchInput theme="minimal" />
+
+// Elegant theme - Sophisticated with gradients
+<HeadlessSearchInput theme="elegant" />
+
+// Dark theme - Perfect for dark mode
+<HeadlessSearchInput theme="dark" />
+
+// Colorful theme - Vibrant and modern
+<HeadlessSearchInput theme="colorful" />
+```
+
+### Custom Themes
+
+```tsx
+const customTheme = {
+  theme: 'modern',
+  colors: {
+    inputBorderFocus: '#10b981',
+    inputBackground: '#f0fdf4',
+    resultsBackground: '#f0fdf4',
+  },
+  spacing: {
+    inputPadding: '1rem 1.25rem',
+    inputBorderRadius: '1.5rem',
+  },
+  enableAnimations: true,
+  enableShadows: true,
+}
+
+<HeadlessSearchInput theme={customTheme} />
+```
+
+### Theme Features
+
+- **5 Pre-built Themes**: Modern, Minimal, Elegant, Dark, Colorful
+- **Unlimited Customization**: Override any color, spacing, typography, or animation
+- **Performance Options**: Disable animations/shadows for better performance
+- **Responsive Design**: Automatic mobile optimization
+- **CSS Variables**: Advanced styling with CSS custom properties
+- **TypeScript Support**: Full type safety for all theme configurations
+
+## 🆕 What's New in v1.4.0
+
+### 🎨 Theme System - Major Feature Release
+
+- **🎨 Comprehensive Theme System**: 5 pre-built themes (Modern, Minimal, Elegant, Dark, Colorful)
+- **🎨 Unlimited Customization**: Override any color, spacing, typography, or animation
+- **🎨 Performance Options**: Disable animations/shadows for better performance
+- **🎨 Responsive Design**: Automatic mobile optimization with theme system
+- **🎨 CSS Variables**: Advanced styling with CSS custom properties (29 variables)
+- **🎨 TypeScript Support**: Full type safety for all theme configurations
+- **🎨 Theme Provider**: Advanced theme context management
+- **🎨 React Hooks**: useTheme, useThemeConfig, useResponsiveTheme for theme management
+- **🎨 Developer-Friendly**: All theme configurations within the plugin and components
+
+### 🚀 Enhanced Features
+
+- **🚀 Enhanced HeadlessSearchInput**: Now supports comprehensive theme system integration
 - **🎯 Smart API Selection**: Automatically chooses the most efficient endpoint
-- **🎨 Modern UI**: Beautiful Tailwind CSS styling with hover effects and animations
 - **📊 Relative Scoring**: Meaningful percentage display for search result relevance
 - **🔧 Simplified Architecture**: One component handles all search patterns
 - **📱 Responsive Design**: Mobile-first approach with excellent UX
 - **⚡ Performance**: Optimized with client-side filtering and efficient API calls
+- **📚 Complete Documentation**: Comprehensive theme system documentation with examples
+- **🧪 Integrated Demo**: Theme showcase and testing interface in search demo
 
 ### Migration from v1.2.0
 
@@ -143,11 +212,11 @@ If you were using `UnifiedSearchInput`, simply replace it with `HeadlessSearchIn
 ```tsx
 // Before (v1.2.0)
 import { UnifiedSearchInput } from 'typesense-search-plugin'
-<UnifiedSearchInput collections={['posts']} />
+;<UnifiedSearchInput collections={['posts']} />
 
 // After (v1.3.0)
 import { HeadlessSearchInput } from 'typesense-search-plugin'
-<HeadlessSearchInput collection="posts" />
+;<HeadlessSearchInput collection="posts" />
 ```
 
 ## 🤝 Contributing

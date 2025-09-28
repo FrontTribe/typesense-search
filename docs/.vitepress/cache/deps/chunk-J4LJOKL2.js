@@ -35,7 +35,7 @@ import {
   unref,
   watch,
   watchEffect
-} from "./chunk-ZGXAOBDE.js";
+} from "./chunk-YP2OM7Z6.js";
 
 // node_modules/.pnpm/@vueuse+shared@12.8.2_typescript@5.7.3/node_modules/@vueuse/shared/index.mjs
 function computedEager(fn, options) {
@@ -9716,4 +9716,4 @@ export {
   useWindowScroll,
   useWindowSize
 };
-//# sourceMappingURL=chunk-CE7GXVGB.js.map
+//# sourceMappingURL=chunk-J4LJOKL2.js.map
