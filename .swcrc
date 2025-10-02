@@ -20,5 +20,6 @@
   },
   "module": {
     "type": "es6"
-  }
+  },
+  "exclude": ["**/*.css", "**/*.scss", "**/*.sass", "**/*.less"]
 }

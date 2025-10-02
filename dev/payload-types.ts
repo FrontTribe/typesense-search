@@ -6,14 +6,71 @@
  * and re-run `payload generate:types` to regenerate this file.
  */
 
+/**
+ * Supported timezones in IANA format.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supportedTimezones".
+ */
+export type SupportedTimezones =
+  | 'Pacific/Midway'
+  | 'Pacific/Niue'
+  | 'Pacific/Honolulu'
+  | 'Pacific/Rarotonga'
+  | 'America/Anchorage'
+  | 'Pacific/Gambier'
+  | 'America/Los_Angeles'
+  | 'America/Tijuana'
+  | 'America/Denver'
+  | 'America/Phoenix'
+  | 'America/Chicago'
+  | 'America/Guatemala'
+  | 'America/New_York'
+  | 'America/Bogota'
+  | 'America/Caracas'
+  | 'America/Santiago'
+  | 'America/Buenos_Aires'
+  | 'America/Sao_Paulo'
+  | 'Atlantic/South_Georgia'
+  | 'Atlantic/Azores'
+  | 'Atlantic/Cape_Verde'
+  | 'Europe/London'
+  | 'Europe/Berlin'
+  | 'Africa/Lagos'
+  | 'Europe/Athens'
+  | 'Africa/Cairo'
+  | 'Europe/Moscow'
+  | 'Asia/Riyadh'
+  | 'Asia/Dubai'
+  | 'Asia/Baku'
+  | 'Asia/Karachi'
+  | 'Asia/Tashkent'
+  | 'Asia/Calcutta'
+  | 'Asia/Dhaka'
+  | 'Asia/Almaty'
+  | 'Asia/Jakarta'
+  | 'Asia/Bangkok'
+  | 'Asia/Shanghai'
+  | 'Asia/Singapore'
+  | 'Asia/Tokyo'
+  | 'Asia/Seoul'
+  | 'Australia/Brisbane'
+  | 'Australia/Sydney'
+  | 'Pacific/Guam'
+  | 'Pacific/Noumea'
+  | 'Pacific/Auckland'
+  | 'Pacific/Fiji';
+
 export interface Config {
   auth: {
     users: UserAuthOperations;
   };
+  blocks: {};
   collections: {
     posts: Post;
     media: Media;
-    'plugin-collection': PluginCollection;
+    portfolio: Portfolio;
+    products: Product;
     users: User;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -23,7 +80,8 @@ export interface Config {
   collectionsSelect: {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    'plugin-collection': PluginCollectionSelect<false> | PluginCollectionSelect<true>;
+    portfolio: PortfolioSelect<false> | PortfolioSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -67,7 +125,24 @@ export interface UserAuthOperations {
  */
 export interface Post {
   id: string;
-  addedByPlugin?: string | null;
+  title: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  category?: string | null;
+  status?: ('draft' | 'published') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -77,6 +152,8 @@ export interface Post {
  */
 export interface Media {
   id: string;
+  alt?: string | null;
+  type?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -91,10 +168,83 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "plugin-collection".
+ * via the `definition` "portfolio".
  */
-export interface PluginCollection {
+export interface Portfolio {
   id: string;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  shortDescription?: string | null;
+  technologies?:
+    | {
+        name: string;
+        category?: ('frontend' | 'backend' | 'database' | 'devops' | 'design') | null;
+        id?: string | null;
+      }[]
+    | null;
+  projectUrl?: string | null;
+  githubUrl?: string | null;
+  featured?: boolean | null;
+  status?: ('draft' | 'published' | 'archived') | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  name: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  shortDescription?: string | null;
+  price: number;
+  category?: ('electronics' | 'clothing' | 'books' | 'home-garden' | 'sports') | null;
+  brand?: string | null;
+  sku?: string | null;
+  inStock?: boolean | null;
+  featured?: boolean | null;
+  status?: ('draft' | 'published' | 'discontinued') | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -113,6 +263,13 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
   password?: string | null;
 }
 /**
@@ -131,8 +288,12 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
-        relationTo: 'plugin-collection';
-        value: string | PluginCollection;
+        relationTo: 'portfolio';
+        value: string | Portfolio;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
       } | null)
     | ({
         relationTo: 'users';
@@ -185,7 +346,10 @@ export interface PayloadMigration {
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
-  addedByPlugin?: T;
+  title?: T;
+  content?: T;
+  category?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -194,6 +358,8 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  type?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -208,10 +374,53 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "plugin-collection_select".
+ * via the `definition` "portfolio_select".
  */
-export interface PluginCollectionSelect<T extends boolean = true> {
-  id?: T;
+export interface PortfolioSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  shortDescription?: T;
+  technologies?:
+    | T
+    | {
+        name?: T;
+        category?: T;
+        id?: T;
+      };
+  projectUrl?: T;
+  githubUrl?: T;
+  featured?: T;
+  status?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  shortDescription?: T;
+  price?: T;
+  category?: T;
+  brand?: T;
+  sku?: T;
+  inStock?: T;
+  featured?: T;
+  status?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -229,6 +438,13 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

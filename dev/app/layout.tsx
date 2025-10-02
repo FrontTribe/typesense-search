@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
+
 import Link from 'next/link'
-import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Typesense Search Plugin Demo',
   description: 'A demonstration of the Typesense Search Plugin for Payload CMS',
+  title: 'Typesense Search Plugin Demo',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -14,25 +14,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav
           style={{
             backgroundColor: '#1f2937',
-            padding: '1rem 2rem',
             borderBottom: '1px solid #374151',
+            padding: '1rem 2rem',
           }}
         >
           <div
             style={{
-              maxWidth: '1200px',
-              margin: '0 auto',
-              display: 'flex',
               alignItems: 'center',
+              display: 'flex',
               gap: '2rem',
+              margin: '0 auto',
+              maxWidth: '1200px',
             }}
           >
             <Link
               href="/admin"
               style={{
                 color: '#f9fafb',
-                textDecoration: 'none',
                 fontSize: '1rem',
+                textDecoration: 'none',
               }}
             >
               📝 Admin Panel
@@ -41,8 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               href="/search-demo"
               style={{
                 color: '#f9fafb',
-                textDecoration: 'none',
                 fontSize: '1rem',
+                textDecoration: 'none',
               }}
             >
               🔍 Search Demo
