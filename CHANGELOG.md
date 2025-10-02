@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1](https://github.com/fronttribe/typesense-search/compare/v1.4.0...v1.4.1) (2025-10-02)
+
+
+### Bug Fixes
+
+* remove invalid exclude property from .swcrc ([800a4fd](https://github.com/fronttribe/typesense-search/commit/800a4fdaf865fe6399a9a99ff6727c00980afeaa))
+* resolve CSS import errors in Payload type generation ([66ca300](https://github.com/fronttribe/typesense-search/commit/66ca30022d323bd4a32f9313f4b32ff058036164))
+
 ## [1.4.0](https://github.com/fronttribe/typesense-search/compare/v1.3.2...v1.4.0) (2025-01-27)
 
 ### 🎨 Theme System - Major Feature Release
