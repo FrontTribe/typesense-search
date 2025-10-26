@@ -6,8 +6,6 @@ export type {
   SearchResult,
   TypesenseSearchConfig,
 } from '../lib/types.js'
-// Export existing admin components
-export { BeforeDashboardClient } from './BeforeDashboardClient.js'
 
 export { BeforeDashboardServer } from './BeforeDashboardServer.js'
 // Export all search components
