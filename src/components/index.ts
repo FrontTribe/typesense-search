@@ -7,6 +7,7 @@ export type {
   TypesenseSearchConfig,
 } from '../lib/types.js'
 
+// Export existing admin components
 export { BeforeDashboardServer } from './BeforeDashboardServer.js'
 // Export all search components
 export { default as HeadlessSearchInput } from './HeadlessSearchInput.js'
