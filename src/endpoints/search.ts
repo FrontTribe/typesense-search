@@ -193,7 +193,8 @@ const createSearchHandler = (
         }
       } else {
         // Fallback to routeParams extraction
-        const { collectionName: paramCollectionName } = (routeParams as Record<string, unknown>) || {}
+        const { collectionName: paramCollectionName } =
+          (routeParams as Record<string, unknown>) || {}
         collectionName = String(paramCollectionName || '')
         collectionNameStr = collectionName
       }
@@ -424,7 +425,7 @@ const createSuggestHandler = (
 }
 
 const createCollectionsHandler = (pluginOptions: TypesenseSearchConfig): PayloadHandler => {
-  return async () => {
+  return () => {
     try {
       const collections = Object.entries(pluginOptions.collections || {})
         .filter(([_, config]) => config?.enabled)
