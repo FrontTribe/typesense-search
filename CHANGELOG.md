@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2](https://github.com/fronttribe/typesense-search/compare/v1.4.1...v1.4.2) (2025-11-15)
+
+
+### Bug Fixes
+
+* improved search loading state, bug fixes ([43d95f4](https://github.com/fronttribe/typesense-search/commit/43d95f4fd302d56f7e1df20dc155ff4b13bc5660))
+* lint issue ([eaa2f01](https://github.com/fronttribe/typesense-search/commit/eaa2f017d1f5589e55a664b481ff82fbded6186d))
+
 ## [1.4.1](https://github.com/fronttribe/typesense-search/compare/v1.4.0...v1.4.1) (2025-10-02)
 
 
