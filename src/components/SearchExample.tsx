@@ -73,7 +73,16 @@ export const SearchExample: React.FC = () => {
 
       {result.highlight && (
         <div
-          dangerouslySetInnerHTML={{ __html: result.highlight }}
+          dangerouslySetInnerHTML={{
+            __html:
+              result.highlight?.title?.snippet ||
+              result.highlight?.content?.snippet ||
+              Object.values(result.highlight)
+                .map((h) => (typeof h === 'object' && 'snippet' in h ? h.snippet : ''))
+                .filter(Boolean)
+                .join(' ... ') ||
+              '',
+          }}
           style={{
             color: '#6b7280',
             fontSize: '14px',

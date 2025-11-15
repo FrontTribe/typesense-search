@@ -18,6 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * default sync limit, sync limit per collection ([b27bcc8](https://github.com/fronttribe/typesense-search/commit/b27bcc8c720f99e9829be23e292742cf0b8c35f6))
 
+### Dependencies
+
+* **Payload CMS**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/db-mongodb**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/db-postgres**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/db-sqlite**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/next**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/richtext-lexical**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/ui**: Updated from 3.56.0 to 3.64.0
+* **@payloadcms/eslint-config**: Updated from 3.9.0 to 3.28.0
+
+### Changed
+
+* **Minimum Payload Version**: Updated peer dependency from `^3.37.0` to `^3.64.0`
+* **API Compatibility**: Updated `PayloadHandler` signatures to use `PayloadRequest` type
+* **Route Parameters**: Changed from `params` to `routeParams` to match Payload 3.64.0 API
+
 ## [1.4.2](https://github.com/fronttribe/typesense-search/compare/v1.4.1...v1.4.2) (2025-11-15)
 
 

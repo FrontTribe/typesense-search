@@ -18,7 +18,7 @@ The Typesense Search Plugin is a powerful, production-ready search solution that
 Before you begin, make sure you have:
 
 - **Node.js** 22.19.0+ or 20.9.0+
-- **Payload CMS** 3.37.0+
+- **Payload CMS** 3.64.0+
 - **Typesense** 0.25.2+
 - **pnpm** (recommended) or npm/yarn
 

@@ -4,7 +4,7 @@
 
 'use client'
 
-import React, { createContext, useContext } from 'react'
+import React, { createContext, use } from 'react'
 
 import type { ThemeConfig, ThemeContextValue } from './themes/types.js'
 
@@ -20,11 +20,11 @@ const ThemeContext = createContext<null | ThemeContextValue>(null)
 export function ThemeProvider({ children, config }: ThemeProviderProps) {
   const themeContext = useThemeConfig(config)
 
-  return <ThemeContext.Provider value={themeContext}>{children}</ThemeContext.Provider>
+  return <ThemeContext value={themeContext}>{children}</ThemeContext>
 }
 
 export function useTheme(): ThemeContextValue {
-  const context = useContext(ThemeContext)
+  const context = use(ThemeContext)
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
