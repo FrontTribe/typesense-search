@@ -87,6 +87,37 @@ collections: {
 }
 ```
 
+### Initial Sync Performance
+
+Control the initial data synchronization performance with sync limits:
+
+```typescript
+settings: {
+  defaultSyncLimit: 1000, // Default documents per page during initial sync
+}
+
+collections: {
+  largeCollection: {
+    enabled: true,
+    searchFields: ['title', 'content'],
+    syncLimit: 5000, // Higher limit for large collections (fewer API calls)
+  },
+  smallCollection: {
+    enabled: true,
+    searchFields: ['name'],
+    // Uses defaultSyncLimit (1000) - sufficient for smaller collections
+  },
+}
+```
+
+**Sync Limit Guidelines:**
+- **Small collections (< 1,000 docs)**: Default limit (1000) is sufficient
+- **Medium collections (1,000-10,000 docs)**: Increase to 2000-3000
+- **Large collections (> 10,000 docs)**: Increase to 5000+ to reduce API calls
+- **Memory-constrained environments**: Decrease limit to 500-1000
+
+The plugin automatically paginates through all documents, so all data will be synced regardless of the limit. The limit only controls the page size for better performance.
+
 ### Typesense Configuration
 
 Optimize Typesense connection settings:

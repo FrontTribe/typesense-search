@@ -36,7 +36,7 @@ export const initializeTypesenseCollections = async (
     for (const [collectionSlug, config] of Object.entries(pluginOptions.collections)) {
       if (config?.enabled) {
         try {
-          await initializeCollection(payload, typesenseClient, collectionSlug, config)
+          await initializeCollection(payload, typesenseClient, collectionSlug, config, pluginOptions)
           console.log(`✅ Typesense collection "${collectionSlug}" initialized successfully`)
         } catch (error) {
           // Handle collection initialization error
@@ -57,6 +57,7 @@ const initializeCollection = async (
   typesenseClient: Typesense.Client,
   collectionSlug: string,
   config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
+  pluginOptions: TypesenseSearchConfig,
 ) => {
   // Get the collection config from Payload
   const collection = payload.collections[collectionSlug]
@@ -90,7 +91,7 @@ const initializeCollection = async (
   }
 
   // Sync existing documents
-  await syncExistingDocuments(payload, typesenseClient, collectionSlug, config)
+  await syncExistingDocuments(payload, typesenseClient, collectionSlug, config, pluginOptions)
 }
 
 const syncExistingDocuments = async (
@@ -98,57 +99,94 @@ const syncExistingDocuments = async (
   typesenseClient: Typesense.Client,
   collectionSlug: string,
   config: NonNullable<TypesenseSearchConfig['collections']>[string] | undefined,
+  pluginOptions: TypesenseSearchConfig,
 ) => {
   try {
-    const { docs } = await payload.find({
-      collection: collectionSlug,
-      depth: 0,
-      limit: 1000, // Adjust based on your needs
-    })
+    // Calculate effective limit: collection-specific > global default > 1000
+    const effectiveLimit =
+      config?.syncLimit ?? pluginOptions.settings?.defaultSyncLimit ?? 1000
 
-    if (docs.length === 0) {
-      // No documents to sync
-      return
-    }
+    // Fetch first page to determine total pages
+    let page = 1
+    let totalPages = 1
+    let totalSynced = 0
 
-    // Batch sync documents
-    const batchSize = 100
-    for (let i = 0; i < docs.length; i += batchSize) {
-      const batch = docs.slice(i, i + batchSize)
-      const typesenseDocs = batch.map((doc) =>
-        mapPayloadDocumentToTypesense(doc, collectionSlug, config),
-      )
+    do {
+      const result = await payload.find({
+        collection: collectionSlug,
+        depth: 0,
+        limit: effectiveLimit,
+        page,
+      })
 
-      try {
-        const _importResult = await typesenseClient
-          .collections(collectionSlug)
-          .documents()
-          .import(typesenseDocs, { action: 'upsert' })
+      const { docs, totalPages: pages } = result
+      totalPages = pages ?? 1
 
-        // Documents synced successfully
-      } catch (batchError: any) {
-        // Handle batch sync error
+      if (docs.length === 0) {
+        // No documents to sync on this page
+        break
+      }
 
-        // Log detailed import results if available
-        if (batchError.importResults) {
-          // Handle import results error
+      // Log progress for large syncs
+      if (totalPages > 1) {
+        console.log(
+          `📦 Syncing collection "${collectionSlug}": page ${page} of ${totalPages} (${docs.length} documents)`,
+        )
+      }
 
-          // Try to sync documents individually to identify problematic ones
-          // Attempt individual document sync
-          for (let j = 0; j < typesenseDocs.length; j++) {
-            try {
-              await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDocs[j])
-              // Individual sync successful
-            } catch (_individualError: any) {
-              // Handle individual sync error
+      // Batch sync documents
+      const batchSize = 100
+      for (let i = 0; i < docs.length; i += batchSize) {
+        const batch = docs.slice(i, i + batchSize)
+        const typesenseDocs = batch.map((doc) =>
+          mapPayloadDocumentToTypesense(doc, collectionSlug, config),
+        )
+
+        try {
+          const _importResult = await typesenseClient
+            .collections(collectionSlug)
+            .documents()
+            .import(typesenseDocs, { action: 'upsert' })
+
+          totalSynced += batch.length
+          // Documents synced successfully
+        } catch (batchError: any) {
+          // Handle batch sync error
+
+          // Log detailed import results if available
+          if (batchError.importResults) {
+            // Handle import results error
+
+            // Try to sync documents individually to identify problematic ones
+            // Attempt individual document sync
+            for (let j = 0; j < typesenseDocs.length; j++) {
+              try {
+                await typesenseClient.collections(collectionSlug).documents().upsert(typesenseDocs[j])
+                totalSynced++
+                // Individual sync successful
+              } catch (_individualError: any) {
+                // Handle individual sync error
+              }
             }
           }
         }
       }
+
+      page++
+    } while (page <= totalPages)
+
+    if (totalSynced > 0) {
+      console.log(
+        `✅ Synced ${totalSynced} document${totalSynced === 1 ? '' : 's'} from collection "${collectionSlug}"`,
+      )
     }
 
     // Successfully synced documents
   } catch (_error) {
     // Handle document sync error
+    console.error(
+      `❌ Failed to sync documents from collection "${collectionSlug}":`,
+      _error instanceof Error ? _error.message : 'Unknown error',
+    )
   }
 }

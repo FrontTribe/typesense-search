@@ -23,6 +23,7 @@ export type TypesenseSearchConfig = {
         icon?: string
         searchFields?: string[]
         sortFields?: string[]
+        syncLimit?: number
       }
     >
   >
@@ -36,6 +37,7 @@ export type TypesenseSearchConfig = {
     autoSync?: boolean
     batchSize?: number
     categorized?: boolean
+    defaultSyncLimit?: number
     searchEndpoint?: string
   }
 

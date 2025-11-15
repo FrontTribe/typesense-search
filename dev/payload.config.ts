@@ -3,9 +3,9 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
-import { typesenseSearch } from '../src/index.js'
 import { fileURLToPath } from 'url'
 
+import { typesenseSearch } from '../src/index.js'
 import { testEmailAdapter } from './helpers/testEmailAdapter.js'
 import { seed } from './seed.js'
 
@@ -227,7 +227,8 @@ const buildConfigWithPostgres = async () => {
     ],
     db: postgresAdapter({
       pool: {
-        connectionString: process.env.DATABASE_URI || 'postgresql://payload:payload@localhost:5433/payload',
+        connectionString:
+          process.env.DATABASE_URI || 'postgresql://payload:payload@localhost:5433/payload',
       },
     }),
     editor: lexicalEditor(),
@@ -239,22 +240,17 @@ const buildConfigWithPostgres = async () => {
       typesenseSearch({
         collections: {
           media: {
+            displayName: 'Media Files',
             enabled: true,
             facetFields: ['type'],
-            searchFields: ['filename', 'alt'],
-            displayName: 'Media Files',
             icon: '🖼️',
-          },
-          posts: {
-            enabled: true,
-            facetFields: ['category', 'status'],
-            searchFields: ['title', 'content'],
-            displayName: 'Blog Posts',
-            icon: '📝',
+            searchFields: ['filename', 'alt'],
           },
           portfolio: {
+            displayName: 'Portfolio',
             enabled: true,
             facetFields: ['status', 'featured'],
+            icon: '💼',
             searchFields: [
               'title',
               'description',
@@ -262,20 +258,27 @@ const buildConfigWithPostgres = async () => {
               'technologies.name',
               'tags.tag',
             ],
-            displayName: 'Portfolio',
-            icon: '💼',
+          },
+          posts: {
+            displayName: 'Blog Posts',
+            enabled: true,
+            facetFields: ['category', 'status'],
+            icon: '�',
+            searchFields: ['title', 'content'],
           },
           products: {
+            displayName: 'Products',
             enabled: true,
             facetFields: ['category', 'status', 'inStock', 'featured'],
-            searchFields: ['name', 'description', 'shortDescription', 'brand', 'tags.tag'],
-            displayName: 'Products',
             icon: '🛍️',
+            searchFields: ['name', 'description', 'shortDescription', 'brand', 'tags.tag'],
+            syncLimit: 5000, // Sync 5000 documents per page for large product collection
           },
         },
         settings: {
           autoSync: true,
           categorized: true,
+          defaultSyncLimit: 1000, // Default limit for all collections
         },
         typesense: {
           apiKey: 'xyz',
