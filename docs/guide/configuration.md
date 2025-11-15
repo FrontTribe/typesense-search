@@ -55,16 +55,18 @@ const config = {
 | `facetFields`  | `string[]` | ❌       | `[]`                                  | Fields to use for faceting                   |
 | `icon`         | `string`   | ❌       | `'📄'`                                | Icon for the collection in search results    |
 | `sortFields`   | `string[]` | ❌       | `[]`                                  | Available sort fields                        |
+| `syncLimit`    | `number`   | ❌       | `defaultSyncLimit` or `1000`          | Maximum documents per page when syncing initial data |
 
 ### Global Settings
 
-| Option                    | Type      | Required | Default       | Description                               |
-| ------------------------- | --------- | -------- | ------------- | ----------------------------------------- |
-| `disabled`                | `boolean` | ❌       | `false`       | Disable the entire plugin                 |
-| `settings.autoSync`       | `boolean` | ❌       | `true`        | Automatically sync documents to Typesense |
-| `settings.batchSize`      | `number`  | ❌       | `100`         | Batch size for bulk operations            |
-| `settings.categorized`    | `boolean` | ❌       | `false`       | Group results by collection               |
-| `settings.searchEndpoint` | `string`  | ❌       | `/api/search` | Custom search endpoint path               |
+| Option                      | Type      | Required | Default       | Description                                                               |
+| --------------------------- | --------- | -------- | ------------- | ------------------------------------------------------------------------- |
+| `disabled`                  | `boolean` | ❌       | `false`       | Disable the entire plugin                                                 |
+| `settings.autoSync`         | `boolean` | ❌       | `true`        | Automatically sync documents to Typesense                                 |
+| `settings.batchSize`        | `number`  | ❌       | `100`         | Batch size for bulk operations                                            |
+| `settings.categorized`      | `boolean` | ❌       | `false`       | Group results by collection                                               |
+| `settings.defaultSyncLimit` | `number`  | ❌       | `1000`        | Default maximum documents per page when syncing initial data            |
+| `settings.searchEndpoint`   | `string`  | ❌       | `/api/search` | Custom search endpoint path                                                |
 
 ## Complete Configuration Example
 
@@ -102,6 +104,7 @@ const config = {
           facetFields: ['category', 'status', 'author'],
           icon: '📝',
           sortFields: ['createdAt', 'updatedAt', 'title'],
+          syncLimit: 2000, // Sync up to 2000 documents per page for this collection
         },
         pages: {
           enabled: true,
@@ -110,6 +113,7 @@ const config = {
           facetFields: ['template'],
           icon: '📄',
           sortFields: ['title', 'createdAt'],
+          // Uses defaultSyncLimit from settings
         },
         media: {
           enabled: false, // Disabled for search
@@ -125,6 +129,7 @@ const config = {
         autoSync: true,
         batchSize: 100,
         categorized: false,
+        defaultSyncLimit: 1000, // Default limit for all collections
         searchEndpoint: '/api/search',
       },
     }),
@@ -226,6 +231,62 @@ collections: {
   posts: {
     facetFields: ['category', 'status', 'author', 'tags']
   }
+}
+```
+
+## Initial Data Synchronization
+
+When the plugin initializes, it automatically syncs existing documents from Payload collections to Typesense. You can control how many documents are synced per page using sync limits.
+
+### Sync Limit Configuration
+
+The plugin uses pagination to sync all documents, regardless of collection size. The sync limit controls how many documents are fetched per page during the initial sync:
+
+```typescript
+settings: {
+  defaultSyncLimit: 1000, // Global default for all collections
+}
+
+collections: {
+  posts: {
+    syncLimit: 2000, // Override for this specific collection
+  },
+  pages: {
+    // Uses defaultSyncLimit (1000) from settings
+  },
+}
+```
+
+### How Sync Limits Work
+
+1. **Priority**: Collection-specific `syncLimit` takes precedence over `defaultSyncLimit`, which takes precedence over the hardcoded default of `1000`
+2. **Pagination**: The plugin automatically paginates through all documents, using the limit as the page size
+3. **Progress Logging**: For large collections, the plugin logs progress showing which page is being synced
+
+### When to Adjust Sync Limits
+
+- **Large Collections**: Increase the limit for collections with many documents to reduce the number of API calls
+- **Memory Constraints**: Decrease the limit if you experience memory issues during sync
+- **Network Performance**: Adjust based on your network speed and Typesense server capacity
+
+### Example: Large Collection Sync
+
+```typescript
+collections: {
+  products: {
+    enabled: true,
+    searchFields: ['name', 'description'],
+    syncLimit: 5000, // Sync 5000 documents per page for this large collection
+  },
+  categories: {
+    enabled: true,
+    searchFields: ['name'],
+    // Uses defaultSyncLimit (1000) - sufficient for smaller collections
+  },
+}
+
+settings: {
+  defaultSyncLimit: 1000, // Default for collections without syncLimit
 }
 ```
 

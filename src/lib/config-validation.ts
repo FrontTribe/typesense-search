@@ -18,7 +18,8 @@ const CollectionConfigSchema = z.object({
   facetFields: z.array(z.string()).optional().default([]),
   fieldMapping: z.record(z.string(), z.string()).optional(),
   icon: z.string().optional(),
-  searchFields: z.array(z.string()).min(1, 'At least one search field is required')
+  searchFields: z.array(z.string()).min(1, 'At least one search field is required'),
+  syncLimit: z.number().int().min(1, 'Sync limit must be at least 1').optional()
 })
 
 // Cache configuration schema
@@ -30,7 +31,8 @@ const CacheConfigSchema = z.object({
 // Settings configuration schema
 const SettingsConfigSchema = z.object({
   cache: CacheConfigSchema.optional(),
-  categorized: z.boolean().optional().default(false)
+  categorized: z.boolean().optional().default(false),
+  defaultSyncLimit: z.number().int().min(1, 'Default sync limit must be at least 1').optional()
 })
 
 // Main plugin configuration schema

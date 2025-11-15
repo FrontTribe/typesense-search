@@ -99,6 +99,7 @@ export interface CollectionConfig<T = any> {
   fieldMapping?: Record<string, string>
   icon?: string
   searchFields?: Array<keyof T | string>
+  syncLimit?: number
 }
 
 // Generic plugin configuration
@@ -110,6 +111,7 @@ export interface TypesenseSearchConfig<T = Record<string, any>> {
       ttl?: number
     }
     categorized?: boolean
+    defaultSyncLimit?: number
   }
   typesense: {
     apiKey: string
