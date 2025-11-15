@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [1.5.0](https://github.com/fronttribe/typesense-search/compare/v1.4.2...v1.5.0) (2025-11-15)
+
+
+### Bug Fixes
+
+* lock sync ([bd90544](https://github.com/fronttribe/typesense-search/commit/bd905445893210ee6ae674247a58ad4b3e3b1fb9))
+* pr validation ci issue ([5bbd9f9](https://github.com/fronttribe/typesense-search/commit/5bbd9f9f43ff37ac22e99bfca4cefa7fab0cc258))
+
+
+### Features
+
+* default sync limit, sync limit per collection ([b27bcc8](https://github.com/fronttribe/typesense-search/commit/b27bcc8c720f99e9829be23e292742cf0b8c35f6))
+
 ## [1.4.2](https://github.com/fronttribe/typesense-search/compare/v1.4.1...v1.4.2) (2025-11-15)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "typesense-search-plugin",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "A powerful, production-ready search plugin that integrates Typesense with Payload CMS, providing lightning-fast, typo-tolerant search capabilities with real-time synchronization and a comprehensive theme system.",
   "license": "MIT",
   "type": "module",
