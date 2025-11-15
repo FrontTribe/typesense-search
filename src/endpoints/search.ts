@@ -307,8 +307,8 @@ const createSearchHandler = (
         if (collectionError?.httpStatus === 404) {
           return Response.json(
             {
-              error: 'Collection not found in Typesense',
               details: `The collection "${collectionNameStr}" does not exist in Typesense. Please ensure the server has been restarted to initialize collections.`,
+              error: 'Collection not found in Typesense',
               hint: 'Collections are created automatically when Payload initializes. Try restarting your server.',
             },
             { status: 404 },
