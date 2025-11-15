@@ -7,7 +7,7 @@ This guide covers detailed installation instructions for the Typesense Search Pl
 ### System Requirements
 
 - **Node.js**: 22.19.0+ or 20.9.0+
-- **Payload CMS**: 3.37.0+
+- **Payload CMS**: 3.64.0+
 - **Typesense**: 0.25.2+
 - **Package Manager**: pnpm (recommended), npm, or yarn
 

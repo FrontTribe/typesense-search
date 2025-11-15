@@ -2,6 +2,13 @@
 
 A powerful, production-ready search plugin that integrates Typesense with Payload CMS, providing lightning-fast, typo-tolerant search capabilities with real-time synchronization.
 
+## 📋 Prerequisites
+
+- **Node.js**: 22.19.0+ or 20.9.0+
+- **Payload CMS**: 3.64.0+
+- **Typesense**: 0.25.2+
+- **pnpm** (recommended) or npm/yarn
+
 ## 🚀 Quick Start
 
 ```bash
@@ -179,45 +186,6 @@ const customTheme = {
 - **Responsive Design**: Automatic mobile optimization
 - **CSS Variables**: Advanced styling with CSS custom properties
 - **TypeScript Support**: Full type safety for all theme configurations
-
-## 🆕 What's New in v1.4.0
-
-### 🎨 Theme System - Major Feature Release
-
-- **🎨 Comprehensive Theme System**: 5 pre-built themes (Modern, Minimal, Elegant, Dark, Colorful)
-- **🎨 Unlimited Customization**: Override any color, spacing, typography, or animation
-- **🎨 Performance Options**: Disable animations/shadows for better performance
-- **🎨 Responsive Design**: Automatic mobile optimization with theme system
-- **🎨 CSS Variables**: Advanced styling with CSS custom properties (29 variables)
-- **🎨 TypeScript Support**: Full type safety for all theme configurations
-- **🎨 Theme Provider**: Advanced theme context management
-- **🎨 React Hooks**: useTheme, useThemeConfig, useResponsiveTheme for theme management
-- **🎨 Developer-Friendly**: All theme configurations within the plugin and components
-
-### 🚀 Enhanced Features
-
-- **🚀 Enhanced HeadlessSearchInput**: Now supports comprehensive theme system integration
-- **🎯 Smart API Selection**: Automatically chooses the most efficient endpoint
-- **📊 Relative Scoring**: Meaningful percentage display for search result relevance
-- **🔧 Simplified Architecture**: One component handles all search patterns
-- **📱 Responsive Design**: Mobile-first approach with excellent UX
-- **⚡ Performance**: Optimized with client-side filtering and efficient API calls
-- **📚 Complete Documentation**: Comprehensive theme system documentation with examples
-- **🧪 Integrated Demo**: Theme showcase and testing interface in search demo
-
-### Migration from v1.2.0
-
-If you were using `UnifiedSearchInput`, simply replace it with `HeadlessSearchInput`:
-
-```tsx
-// Before (v1.2.0)
-import { UnifiedSearchInput } from 'typesense-search-plugin'
-;<UnifiedSearchInput collections={['posts']} />
-
-// After (v1.3.0)
-import { HeadlessSearchInput } from 'typesense-search-plugin'
-;<HeadlessSearchInput collection="posts" />
-```
 
 ## 🤝 Contributing
 

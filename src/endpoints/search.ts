@@ -1,4 +1,4 @@
-import type { PayloadHandler } from 'payload'
+import type { PayloadHandler, PayloadRequest } from 'payload'
 import type Typesense from 'typesense'
 
 import type { TypesenseSearchConfig } from '../index.js'
@@ -174,18 +174,15 @@ const createSearchHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
-  return async (request: Record<string, unknown>) => {
+  return async ({ query, routeParams, url }: PayloadRequest) => {
     try {
-      // Extract query parameters from the request
-      const { params, query } = request
-
-      // Extract collection name from URL path (fallback to params if available)
+      // Extract collection name from URL path (fallback to routeParams if available)
       let collectionName: string
       let collectionNameStr: string
 
-      if (request.url && typeof request.url === 'string') {
-        const url = new URL(request.url)
-        const pathParts = url.pathname.split('/')
+      if (url && typeof url === 'string') {
+        const urlObj = new URL(url)
+        const pathParts = urlObj.pathname.split('/')
         const searchIndex = pathParts.indexOf('search')
         if (searchIndex !== -1 && pathParts[searchIndex + 1]) {
           collectionName = pathParts[searchIndex + 1] || ''
@@ -195,19 +192,19 @@ const createSearchHandler = (
           collectionNameStr = ''
         }
       } else {
-        // Fallback to params extraction
-        const { collectionName: paramCollectionName } = (params as Record<string, unknown>) || {}
+        // Fallback to routeParams extraction
+        const { collectionName: paramCollectionName } = (routeParams as Record<string, unknown>) || {}
         collectionName = String(paramCollectionName || '')
         collectionNameStr = collectionName
       }
 
       // Extract search parameters
-      const q = String((query as Record<string, unknown>)?.q || '')
-      const pageParam = (query as Record<string, unknown>)?.page
-      const perPageParam = (query as Record<string, unknown>)?.per_page
+      const q = String(query?.q || '')
+      const pageParam = query?.page
+      const perPageParam = query?.per_page
       const page = pageParam ? parseInt(String(pageParam), 10) : 1
       const per_page = perPageParam ? parseInt(String(perPageParam), 10) : 10
-      const sort_by = (query as Record<string, unknown>)?.sort_by
+      const sort_by = query?.sort_by
 
       // Validate parsed numbers
       if (isNaN(page) || page < 1) {
@@ -353,11 +350,10 @@ const createAdvancedSearchHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
-  return async (request: any) => {
-    const { params, req } = request
-    const { collectionName } = params || {}
+  return async ({ routeParams, ...req }: PayloadRequest) => {
+    const { collectionName } = (routeParams as Record<string, unknown>) || {}
     const collectionNameStr = String(collectionName || '')
-    const body = (await req?.json?.()) || {}
+    const body = req.data || (await (req as Request).json?.().catch(() => ({}))) || {}
 
     if (!pluginOptions.collections?.[collectionNameStr]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
@@ -381,16 +377,19 @@ const createSuggestHandler = (
   typesenseClient: Typesense.Client,
   pluginOptions: TypesenseSearchConfig,
 ): PayloadHandler => {
-  return async (request: any) => {
+  return async ({ url }: PayloadRequest) => {
     // Extract collection name from URL path
-    const url = new URL(request.url)
-    const pathParts = url.pathname.split('/')
+    if (!url || typeof url !== 'string') {
+      return Response.json({ error: 'Invalid request URL' }, { status: 400 })
+    }
+    const urlObj = new URL(url)
+    const pathParts = urlObj.pathname.split('/')
     const collectionName = pathParts[pathParts.indexOf('search') + 1]
     const collectionNameStr = String(collectionName || '')
 
     // Extract query parameters
-    const q = url.searchParams.get('q')
-    const limit = url.searchParams.get('limit') || '5'
+    const q = urlObj.searchParams.get('q')
+    const limit = urlObj.searchParams.get('limit') || '5'
 
     if (!collectionName || !pluginOptions.collections?.[collectionNameStr]?.enabled) {
       return Response.json({ error: 'Collection not enabled for search' }, { status: 400 })
@@ -425,7 +424,7 @@ const createSuggestHandler = (
 }
 
 const createCollectionsHandler = (pluginOptions: TypesenseSearchConfig): PayloadHandler => {
-  return () => {
+  return async () => {
     try {
       const collections = Object.entries(pluginOptions.collections || {})
         .filter(([_, config]) => config?.enabled)
