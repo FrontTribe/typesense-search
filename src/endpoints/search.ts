@@ -300,6 +300,23 @@ const createSearchHandler = (
         return Response.json(cachedResult)
       }
 
+      // Check if collection exists in Typesense
+      try {
+        await typesenseClient.collections(collectionNameStr).retrieve()
+      } catch (collectionError: any) {
+        if (collectionError?.httpStatus === 404) {
+          return Response.json(
+            {
+              error: 'Collection not found in Typesense',
+              details: `The collection "${collectionNameStr}" does not exist in Typesense. Please ensure the server has been restarted to initialize collections.`,
+              hint: 'Collections are created automatically when Payload initializes. Try restarting your server.',
+            },
+            { status: 404 },
+          )
+        }
+        throw collectionError
+      }
+
       const searchResults = await typesenseClient
         .collections(collectionNameStr)
         .documents()
@@ -313,13 +330,21 @@ const createSearchHandler = (
       return Response.json(searchResults)
     } catch (_error) {
       // Handle search error
-      return Response.json(
-        {
-          details: _error instanceof Error ? _error.message : 'Unknown error',
-          error: 'Search handler failed',
-        },
-        { status: 500 },
-      )
+      const errorMessage = _error instanceof Error ? _error.message : 'Unknown error'
+      const errorDetails: any = {
+        details: errorMessage,
+        error: 'Search handler failed',
+      }
+
+      // Add more context for Typesense errors
+      if (_error && typeof _error === 'object' && 'httpStatus' in _error) {
+        errorDetails.httpStatus = (_error as any).httpStatus
+        if ((_error as any).httpStatus === 404) {
+          errorDetails.message = 'Collection not found in Typesense'
+        }
+      }
+
+      return Response.json(errorDetails, { status: 500 })
     }
   }
 }

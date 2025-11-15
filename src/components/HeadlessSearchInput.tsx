@@ -153,11 +153,14 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
       if (searchQuery.length < minQueryLength) {
         setResults(null)
         setIsLoading(false)
+        setIsOpen(false)
         return
       }
 
       setIsLoading(true)
       setError(null)
+      // Open dropdown when loading starts
+      setIsOpen(true)
 
       try {
         let searchUrl: string
@@ -205,9 +208,13 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
         setResults(searchResults)
         onResultsRef.current?.(searchResults)
         onSearchRef.current?.(searchQuery, searchResults)
+        // Keep dropdown open when results arrive
+        setIsOpen(true)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Search failed')
         setResults(null)
+        // Keep dropdown open to show error
+        setIsOpen(true)
       } finally {
         setIsLoading(false)
       }
@@ -222,6 +229,10 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
     }
 
     if (query.length >= minQueryLength) {
+      // Set loading state immediately when debounce starts
+      // This shows the loader in the input and opens dropdown with loading state
+      setIsLoading(true)
+      setIsOpen(true)
       debounceRef.current = setTimeout(() => {
         void performSearch(query)
         void onSearchRef.current?.(
@@ -239,11 +250,15 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
     } else {
       setResults(null)
       setIsLoading(false)
+      setIsOpen(false)
+      setError(null)
     }
 
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current)
+        // Don't set loading to false here - let performSearch handle it
+        // This prevents flickering when user types quickly
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,12 +268,14 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setQuery(value)
-    setIsOpen(value.length >= minQueryLength)
+    // The useEffect will handle loading state and dropdown visibility
+    // based on query length and debounce timing
   }
 
   // Handle input focus
   const handleInputFocus = () => {
-    if (query.length >= minQueryLength) {
+    // Only open if we have results or are loading
+    if (query.length >= minQueryLength && (isLoading || results)) {
       setIsOpen(true)
     }
   }
@@ -698,6 +715,35 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
     </div>
   )
 
+  // Inject animation keyframes if not already present
+  useEffect(() => {
+    if (typeof document !== 'undefined' && !document.getElementById('search-animations')) {
+      const style = document.createElement('style')
+      style.id = 'search-animations'
+      style.textContent = `
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes slideDown {
+          0% {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `
+      document.head.appendChild(style)
+    }
+  }, [])
+
   return (
     <div
       className={`${className}`}
@@ -797,7 +843,7 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
         )}
       </div>
 
-      {isOpen && (
+      {isOpen && (isLoading || results || error) && (
         <div
           className={`${resultsClassName}`}
           ref={resultsRef}
@@ -827,7 +873,35 @@ const HeadlessSearchInput = <T = Record<string, unknown>,>({
         >
           {error && (renderError ? renderError(error) : defaultRenderError(error))}
 
-          {!error && results && (
+          {!error && isLoading && !results && (
+            <div
+              className={`${loadingClassName}`}
+              style={{
+                alignItems: 'center',
+                color: themeConfig.theme.colors.loadingText,
+                display: 'flex',
+                fontFamily: themeConfig.theme.typography.fontFamily,
+                fontSize: themeConfig.theme.typography.fontSizeSm,
+                gap: '12px',
+                justifyContent: 'center',
+                padding: '24px',
+              }}
+            >
+              <div
+                style={{
+                  animation: `spin 1s linear infinite`,
+                  border: `2px solid ${themeConfig.theme.colors.inputBorder}`,
+                  borderRadius: '50%',
+                  borderTop: `2px solid ${themeConfig.theme.colors.inputBorderFocus}`,
+                  height: '20px',
+                  width: '20px',
+                }}
+              />
+              <span>Searching...</span>
+            </div>
+          )}
+
+          {!error && !isLoading && results && (
             <>
               {showResultCount &&
                 (renderResultsHeader

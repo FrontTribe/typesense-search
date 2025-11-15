@@ -1,7 +1,5 @@
 import type { Payload } from 'payload'
 
-import { devUser } from './helpers/credentials.js'
-
 // Sample data for seeding collections
 const samplePosts = [
   {
@@ -428,12 +426,15 @@ const sampleProducts = [
 ]
 
 export const seed = async (payload: Payload) => {
-  // Create dev user
+  // Create admin user from environment variables or defaults
+  const adminEmail = process.env.PAYLOAD_EMAIL || 'admin@example.com'
+  const adminPassword = process.env.PAYLOAD_PASSWORD || 'admin123'
+
   const { totalDocs } = await payload.count({
     collection: 'users',
     where: {
       email: {
-        equals: devUser.email,
+        equals: adminEmail,
       },
     },
   })
@@ -441,8 +442,14 @@ export const seed = async (payload: Payload) => {
   if (!totalDocs) {
     await payload.create({
       collection: 'users',
-      data: devUser,
+      data: {
+        email: adminEmail,
+        password: adminPassword,
+      },
     })
+    console.log(`✅ Created admin user: ${adminEmail}`)
+  } else {
+    console.log(`ℹ️  Admin user already exists: ${adminEmail}`)
   }
 
   // Seed sample data for collections

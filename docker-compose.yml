@@ -1,11 +1,15 @@
 services:
-  mongodb:
-    image: mongo:7.0
+  postgres:
+    image: postgres:16-alpine
     restart: on-failure
     ports:
-      - '27017:27017'
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: payload
+      POSTGRES_PASSWORD: payload
+      POSTGRES_DB: payload
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
 
   typesense:
     image: typesense/typesense:29.0
@@ -17,4 +21,4 @@ services:
     command: '--data-dir /data --api-key=xyz --enable-cors'
 
 volumes:
-  mongodb_data:
+  postgres_data:

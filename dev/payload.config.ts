@@ -1,6 +1,5 @@
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -17,20 +16,14 @@ if (!process.env.ROOT_DIR) {
   process.env.ROOT_DIR = dirname
 }
 
-const buildConfigWithMemoryDB = async () => {
-  if (process.env.NODE_ENV === 'test') {
-    const memoryDB = await MongoMemoryReplSet.create({
-      replSet: {
-        count: 3,
-        dbName: 'payloadmemory',
-      },
-    })
-
-    process.env.DATABASE_URI = `${memoryDB.getUri()}&retryWrites=true`
-  }
-
+const buildConfigWithPostgres = async () => {
   return buildConfig({
     admin: {
+      autoLogin: {
+        email: process.env.PAYLOAD_EMAIL || 'admin@example.com',
+        password: process.env.PAYLOAD_PASSWORD || 'admin123',
+        prefillOnly: false,
+      },
       importMap: {
         baseDir: path.resolve(dirname),
       },
@@ -232,9 +225,10 @@ const buildConfigWithMemoryDB = async () => {
         ],
       },
     ],
-    db: mongooseAdapter({
-      ensureIndexes: true,
-      url: process.env.DATABASE_URI || 'mongodb://localhost:27017/payload',
+    db: postgresAdapter({
+      pool: {
+        connectionString: process.env.DATABASE_URI || 'postgresql://payload:payload@localhost:5433/payload',
+      },
     }),
     editor: lexicalEditor(),
     email: testEmailAdapter,
@@ -304,4 +298,4 @@ const buildConfigWithMemoryDB = async () => {
   })
 }
 
-export default buildConfigWithMemoryDB()
+export default buildConfigWithPostgres()

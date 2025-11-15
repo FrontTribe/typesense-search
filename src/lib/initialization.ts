@@ -25,8 +25,10 @@ export const initializeTypesenseCollections = async (
   const isConnected = await testTypesenseConnection(typesenseClient)
   if (!isConnected) {
     // Typesense connection failed
+    console.error('❌ Typesense connection failed. Collections will not be initialized.')
     return
   }
+  console.log('✅ Typesense connection successful')
 
   // Initialize Typesense collections
 
@@ -35,8 +37,13 @@ export const initializeTypesenseCollections = async (
       if (config?.enabled) {
         try {
           await initializeCollection(payload, typesenseClient, collectionSlug, config)
-        } catch (_error) {
+          console.log(`✅ Typesense collection "${collectionSlug}" initialized successfully`)
+        } catch (error) {
           // Handle collection initialization error
+          console.error(
+            `❌ Failed to initialize Typesense collection "${collectionSlug}":`,
+            error instanceof Error ? error.message : 'Unknown error',
+          )
         }
       }
     }
@@ -55,6 +62,7 @@ const initializeCollection = async (
   const collection = payload.collections[collectionSlug]
   if (!collection) {
     // Collection not found in Payload
+    console.warn(`⚠️  Collection "${collectionSlug}" not found in Payload. Skipping Typesense initialization.`)
     return
   }
 
@@ -70,10 +78,14 @@ const initializeCollection = async (
     // Collection doesn't exist, create it
     try {
       await typesenseClient.collections().create(schema)
-      // Collection created successfully
-    } catch (_createError) {
+      console.log(`✅ Created Typesense collection "${collectionSlug}"`)
+    } catch (createError) {
       // Handle collection creation error
-      return
+      console.error(
+        `❌ Failed to create Typesense collection "${collectionSlug}":`,
+        createError instanceof Error ? createError.message : 'Unknown error',
+      )
+      throw createError
     }
   }
 
